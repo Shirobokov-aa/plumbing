@@ -1,34 +1,39 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 interface Slide {
   id: number;
-  image: string;
+  desktopImage: string;
+  mobileImage: string;
   title: string;
 }
 
 const SLIDES: Slide[] = [
   {
     id: 1,
-    image: "/img/banner01.png",
+    desktopImage: "/img/banner01.png",
+    mobileImage: "/img/banner01-mobil.png",
     title: "коллекция",
   },
   {
     id: 2,
-    image: "/img/banner01.png",
+    desktopImage: "/img/banner01.png",
+    mobileImage: "/img/banner01-mobil.png",
     title: "Новая коллекция",
   },
   {
     id: 3,
-    image: "/img/banner01.png",
+    desktopImage: "/img/banner01.png",
+    mobileImage: "/img/banner01-mobil.png",
     title: "коллекция",
   },
   {
     id: 4,
-    image: "/img/banner01.png",
+    desktopImage: "/img/banner01.png",
+    mobileImage: "/img/banner01-mobil.png",
     title: "Новая коллекция",
   },
 ];
@@ -37,13 +42,20 @@ const SLIDE_DURATION = 4000; // 5 seconds
 
 export function BannerSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef<number | null>(null);
+  const endX = useRef<number | null>(null);
+
+  useEffect(() => {
+    const updateMedia = () => setIsMobile(window.innerWidth < 768);
+    updateMedia();
+    window.addEventListener("resize", updateMedia);
+    return () => window.removeEventListener("resize", updateMedia);
+  }, []);
 
   const goToSlide = useCallback((index: number) => {
     setCurrentSlide(index);
-    setProgress(0);
   }, []);
 
   const nextSlide = useCallback(() => {
@@ -55,35 +67,25 @@ export function BannerSlider() {
   }, [currentSlide, goToSlide]);
 
   useEffect(() => {
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, SLIDE_DURATION / 100);
-
     const slideInterval = setInterval(nextSlide, SLIDE_DURATION);
-
-    return () => {
-      clearInterval(progressInterval);
-      clearInterval(slideInterval);
-    };
+    return () => clearInterval(slideInterval);
   }, [nextSlide]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null); // Reset touchEnd
-    setTouchStart(e.targetTouches[0].clientX);
+  // Touch & Mouse Drag Events
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    startX.current = "touches" in e ? e.touches[0].clientX : e.clientX;
+    endX.current = null;
+    setIsDragging(true);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!startX.current) return;
+    endX.current = "touches" in e ? e.touches[0].clientX : e.clientX;
   };
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
+    if (!startX.current || !endX.current) return;
+    const distance = startX.current - endX.current;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
@@ -92,14 +94,19 @@ export function BannerSlider() {
     } else if (isRightSwipe) {
       prevSlide();
     }
+    setIsDragging(false);
   };
 
   return (
     <div
-      className="relative lg:h-[915px] h-[542px] w-full overflow-hidden"
+      className="relative lg:h-[915px] h-[542px] w-full overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onMouseDown={handleTouchStart}
+      onMouseMove={isDragging ? handleTouchMove : undefined}
+      onMouseUp={handleTouchEnd}
+      onMouseLeave={handleTouchEnd}
     >
       {SLIDES.map((slide, index) => (
         <div
@@ -109,14 +116,14 @@ export function BannerSlider() {
           }`}
         >
           <Image
-            src={slide.image || "/placeholder.svg"}
+            src={isMobile ? slide.mobileImage : slide.desktopImage}
             alt={slide.title}
             fill
             className="object-cover"
             priority={index === 0}
           />
           <div className="absolute inset-0 bg-black/20">
-            <Link href={"/"} className="">
+            <Link href="/">
               <div className="absolute top-72 right-0 lg:py-9 py-7 lg:px-[150px] px-24 bg-[#1E1E1E] text-white">
                 <h2 className="lg:text-xl font-light border-b border-b-white">{slide.title}</h2>
               </div>
@@ -125,15 +132,14 @@ export function BannerSlider() {
         </div>
       ))}
 
-      {/* Progress indicators */}
+      {/* Индикаторы */}
       <div className="absolute bottom-8 left-8 right-8 flex gap-2">
         {SLIDES.map((_, index) => (
-          <div key={index} className="h-[2px] flex-1 bg-white/30">
+          <div key={index} className="h-[2px] flex-1 bg-white/30 relative overflow-hidden">
             <div
-              className="h-full bg-white transition-all duration-200"
-              style={{
-                width: `${index === currentSlide ? progress : index < currentSlide ? 100 : 0}%`,
-              }}
+              className={`absolute inset-0 bg-white transition-all duration-[${SLIDE_DURATION}ms] ${
+                index === currentSlide ? "w-full" : "w-0"
+              }`}
             />
           </div>
         ))}

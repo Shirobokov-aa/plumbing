@@ -1,15 +1,20 @@
 "use client"
 import Image from "next/image"
 import Link from "next/link"
-import { Search } from "lucide-react"
+import { Search, Menu, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import HoverMenu from "./HoverMenu"
+
+interface HeaderProps {
+  defaultTextColor?: string
+  activeTextColor?: string
+}
 
 const categories = [
   {
     name: "Ванная",
     subcategories: [
-      { name: "Ванны", href: "/bathroom/baths" },
+      { name: "Ванны", href: "/collections" },
       { name: "Душевые", href: "/bathroom/showers" },
       { name: "Раковины", href: "/bathroom/sinks" },
     ],
@@ -27,12 +32,13 @@ const categories = [
   // Добавьте остальные категории по необходимости
 ]
 
-export default function Header() {
+export default function Header({ defaultTextColor = "text-white", activeTextColor = "text-black" }: HeaderProps) {
   const [isVisible, setIsVisible] = useState(true)
   const [isAtTop, setIsAtTop] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isMenuLocked, setIsMenuLocked] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,7 +83,12 @@ export default function Header() {
     setActiveCategory(null)
   }
 
-  const isHeaderWhite = !isAtTop || activeCategory !== null
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const isHeaderWhite = !isAtTop || activeCategory !== null || isMobileMenuOpen
+  const currentTextColor = isHeaderWhite ? activeTextColor : defaultTextColor
 
   return (
     <header
@@ -89,13 +100,13 @@ export default function Header() {
         <nav className="flex items-center justify-between h-20 text-header">
           <Link
             href="/"
-            className={`lg:block hidden text-2xl font-bold ${isHeaderWhite ? "text-black" : "text-white"}`}
+            className={`lg:block hidden text-2xl font-bold ${currentTextColor}`}
           >
             <Image src="/img/logo.svg" alt="Logo" width={263} height={35} className="object-contain" />
           </Link>
           <Link
             href="/"
-            className={`block lg:hidden text-2xl font-bold ${isHeaderWhite ? "text-black" : "text-white"}`}
+            className={`block lg:hidden text-2xl font-bold ${currentTextColor}`}
           >
             <Image src="/img/logo.svg" alt="Logo" width={168} height={22} className="object-contain" />
           </Link>
@@ -103,7 +114,7 @@ export default function Header() {
             {categories.map((category) => (
               <li
                 key={category.name}
-                className={`hover:opacity-80 transition-colors relative ${isHeaderWhite ? "text-black" : "text-white"}`}
+                className={`hover:opacity-80 transition-colors relative ${currentTextColor}`}
                 onMouseEnter={() => handleMouseEnter(category.name)}
                 onMouseLeave={handleMouseLeave}
               >
@@ -117,18 +128,35 @@ export default function Header() {
                 />
               </li>
             ))}
-            <li className={`hover:opacity-80 transition-colors ${isHeaderWhite ? "text-black" : "text-white"}`}>
+            <li className={`hover:opacity-80 transition-colors ${currentTextColor}`}>
               <Link href={"/"}>Сервисы</Link>
             </li>
-            <li className={`hover:opacity-80 transition-colors ${isHeaderWhite ? "text-black" : "text-white"}`}>
+            <li className={`hover:opacity-80 transition-colors ${currentTextColor}`}>
               <Link href={"/"}>О компании</Link>
             </li>
+            <li className={`hover:opacity-80 transition-colors ${currentTextColor}`}>
+              <Link href={"/"}>Контакты</Link>
+            </li>
           </ul>
-          <button
-            className={`p-2 rounded-full transition-colors ${isHeaderWhite ? "hover:bg-black/10" : "hover:bg-white/10"}`}
-          >
-            <Search className={`w-5 h-5 ${isHeaderWhite ? "text-black" : "text-white"}`} />
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+              className={`p-2 rounded-full transition-colors ${isHeaderWhite ? "hover:bg-black/10" : "hover:bg-white/10"}`}
+            >
+              <Search className={`w-5 h-5 ${currentTextColor}`} />
+            </button>
+            <button
+              className={`lg:hidden p-2 rounded-full transition-colors ${
+                isHeaderWhite ? "hover:bg-black/10" : "hover:bg-white/10"
+              }`}
+              onClick={toggleMobileMenu}
+            >
+              {isMobileMenuOpen ? (
+                <X className={`w-6 h-6 ${currentTextColor}`} />
+              ) : (
+                <Menu className={`w-6 h-6 ${currentTextColor}`} />
+              )}
+            </button>
+          </div>
         </nav>
       </div>
       {categories.map((category) => (
@@ -139,6 +167,34 @@ export default function Header() {
           onClose={closeMenu}
         />
       ))}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden bg-white shadow-md">
+          <ul className="py-4">
+            {categories.map((category) => (
+              <li key={category.name} className="px-5 py-2">
+                <Link href={"/"} className={`block ${activeTextColor} hover:opacity-80 transition-colors`}>
+                  {category.name}
+                </Link>
+              </li>
+            ))}
+            <li className="px-5 py-2">
+              <Link href={"/"} className={`block ${activeTextColor} hover:opacity-80 transition-colors`}>
+                Сервисы
+              </Link>
+            </li>
+            <li className="px-5 py-2">
+              <Link href={"/"} className={`block ${activeTextColor} hover:opacity-80 transition-colors`}>
+                О компании
+              </Link>
+            </li>
+            <li className="px-5 py-2">
+              <Link href={"/"} className={`block ${activeTextColor} hover:opacity-80 transition-colors`}>
+                Контакты
+              </Link>
+            </li>
+          </ul>
+        </div>
+      )}
     </header>
   )
 }
