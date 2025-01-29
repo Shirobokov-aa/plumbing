@@ -49,6 +49,22 @@ export default {
             letterSpacing: "0px",
           },
         ],
+        colH2: [
+          "36px",
+          {
+            lineHeight: "150%",
+            fontWeight: "600",
+            letterSpacing: "0px",
+          },
+        ],
+        colH2Lg: [
+          "36px",
+          {
+            lineHeight: "120%",
+            fontWeight: "400",
+            letterSpacing: "0px",
+          },
+        ],
       },
 
 			maxWidth: {
