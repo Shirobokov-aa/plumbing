@@ -1,0 +1,54 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
+const sidebarItems = [
+  {
+    title: "Главная страница",
+    items: [
+      { title: "Секция 1", href: "/admin/main/section-1" },
+      { title: "Секция 2", href: "/admin/main/section-2" },
+      { title: "Секция 3", href: "/admin/main/section-3" },
+      { title: "Секция 4", href: "/admin/main/section-4" },
+      { title: "Секция 5", href: "/admin/main/section-5" },
+    ],
+  },
+  // Добавьте другие разделы по мере необходимости
+]
+
+export function Sidebar() {
+  const pathname = usePathname()
+
+  return (
+    <div className="w-64 bg-gray-100 border-r">
+      <div className="p-4">
+        <h1 className="text-2xl font-bold">Админ-панель</h1>
+      </div>
+      <ScrollArea className="h-[calc(100vh-5rem)]">
+        <div className="p-4">
+          <Accordion type="multiple" className="w-full">
+            {sidebarItems.map((section, index) => (
+              <AccordionItem value={`item-${index}`} key={index}>
+                <AccordionTrigger>{section.title}</AccordionTrigger>
+                <AccordionContent>
+                  {section.items.map((item, itemIndex) => (
+                    <Link href={item.href} key={itemIndex}>
+                      <Button variant={pathname === item.href ? "secondary" : "ghost"} className="w-full justify-start">
+                        {item.title}
+                      </Button>
+                    </Link>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </ScrollArea>
+    </div>
+  )
+}
+

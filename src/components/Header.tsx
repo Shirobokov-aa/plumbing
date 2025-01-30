@@ -18,7 +18,7 @@ const categories = [
       { name: "Душевые", href: "/bathroom/showers" },
       { name: "Раковины", href: "/bathroom/sinks" },
     ],
-    images: ["/img/bathroom1.jpg", "/img/bathroom2.jpg", "/img/bathroom3.jpg", "/img/bathroom4.jpg"],
+    images: ["/img/item10.png", "/img/item11.png", "/img/item12.png"],
   },
   {
     name: "Кухня",

@@ -23,6 +23,11 @@ interface HoverMenuProps {
 export default function HoverMenu({ category, isVisible, onClose }: HoverMenuProps) {
   if (!isVisible) return null;
 
+  const images = category.images.map((src) => ({
+    src,
+    alt: "Image description", // Можно добавить описание изображения
+  }));
+
   return (
     <div className="absolute top-full left-0 w-full bg-white shadow-lg animate-fadeIn">
       <div className="max-w-1440 mx-auto lg:px-24 px-5 py-8 flex relative">
@@ -46,7 +51,7 @@ export default function HoverMenu({ category, isVisible, onClose }: HoverMenuPro
           </ul>
         </div>
         <div className="max-w-[800px] w-full">
-          <ImageBlock />
+          <ImageBlock images={images} />
         </div>
       </div>
     </div>
