@@ -14,7 +14,7 @@ const categories = [
   {
     name: "Ванная",
     subcategories: [
-      { name: "Ванны", href: "/collections" },
+      { name: "Ванны", href: "/" },
       { name: "Душевые", href: "/bathroom/showers" },
       { name: "Раковины", href: "/bathroom/sinks" },
     ],

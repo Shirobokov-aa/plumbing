@@ -10,6 +10,7 @@ interface ImageBlockData {
   src: string;
   alt: string;
   desc?: string;
+  url?: string;
 }
 
 interface Section {
@@ -51,12 +52,12 @@ export default function Main() {
     "section-4": {
       title: "Коллекции",
       description: "Описание для коллекций",
-      link: { name: "Смотреть", url: "/" },
+      link: { name: "Смотреть", url: "/collections" },
       images_block: [
-        { src: "/img/item01.png", alt: "Banner 1", desc: "ERA" },
-        { src: "/img/item02.png", alt: "Banner 2", desc: "AMO" },
-        { src: "/img/item03.png", alt: "Image 3", desc: "TWIST" },
-        { src: "/img/item01.png", alt: "Image 1", desc: "ERA" },
+        { src: "/img/item01.png", alt: "Banner 1", desc: "ERA", url: "/era" },
+        { src: "/img/item02.png", alt: "Banner 2", desc: "AMO", url: "/amo" },
+        { src: "/img/item03.png", alt: "Image 3", desc: "TWIST", url: "/twist" },
+        { src: "/img/item01.png", alt: "Image 1", desc: "ERA", url: "/era" }
       ],
     },
     "section-5": {
@@ -77,6 +78,7 @@ export default function Main() {
         src: item.src,
         alt: item.alt || "",
         desc: item.desc || "",
+        url: item.url || "",
       })) || []
     );
   }, [SECTIONS_MAIN_PAGE]);

@@ -10,16 +10,16 @@ import { useSections } from "../../contexts/SectionsContext"
 import Image from "next/image"
 // import { useSections } from "../contexts/SectionsContext"
 
-export default function Section3Admin() {
+export default function Section5Admin() {
   const { sections, updateSection } = useSections()
-  const [sectionData, setSectionData] = useState(sections["section-3"])
+  const [sectionData, setSectionData] = useState(sections["section-5"])
 
   useEffect(() => {
-    setSectionData(sections["section-3"])
+    setSectionData(sections["section-5"])
   }, [sections])
 
   const handleSave = () => {
-    updateSection("section-3", sectionData)
+    updateSection("section-5", sectionData)
     console.log("Изменения сохранены:", sectionData)
   }
 
@@ -50,7 +50,7 @@ export default function Section3Admin() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Редактирование Секции 3</h1>
+      <h1 className="text-3xl font-bold">Редактирование Секции 5</h1>
       <div className="space-y-4">
         <div>
           <Label htmlFor="title">Заголовок</Label>
@@ -90,7 +90,7 @@ export default function Section3Admin() {
             }))}
           />
         </div>
-        {/* <div>
+        <div>
           <Label>Изображения блока</Label>
           <div className="grid grid-cols-4 gap-4">
             {sectionData.images_block?.map((image, index) => (
@@ -102,8 +102,8 @@ export default function Section3Admin() {
               </div>
             ))}
           </div>
-        </div> */}
-        <div>
+        </div>
+        {/* <div>
           <Label>Главное изображение</Label>
           <div className="space-y-2">
             <Image
@@ -115,7 +115,7 @@ export default function Section3Admin() {
             />
             <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 0, true)} />
           </div>
-        </div>
+        </div> */}
       </div>
       <Button onClick={handleSave}>Сохранить изменения</Button>
     </div>

@@ -17,6 +17,13 @@ const sidebarItems = [
       { title: "Секция 5", href: "/admin/main/section-5" },
     ],
   },
+  {
+    title: "Коллекции",
+    items: [
+      { title: "Все коллекции", href: "/admin/collections" },
+      { title: "Добавить коллекцию", href: "/admin/collections/add" },
+    ],
+  },
   // Добавьте другие разделы по мере необходимости
 ]
 
