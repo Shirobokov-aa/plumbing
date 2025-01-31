@@ -5,30 +5,36 @@ import { usePathname } from "next/navigation"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
-const sidebarItems = [
-  {
-    title: "Главная страница",
-    items: [
-      { title: "Секция 1", href: "/admin/main/section-1" },
-      { title: "Секция 2", href: "/admin/main/section-2" },
-      { title: "Секция 3", href: "/admin/main/section-3" },
-      { title: "Секция 4", href: "/admin/main/section-4" },
-      { title: "Секция 5", href: "/admin/main/section-5" },
-    ],
-  },
-  {
-    title: "Коллекции",
-    items: [
-      { title: "Все коллекции", href: "/admin/collections" },
-      { title: "Добавить коллекцию", href: "/admin/collections/add" },
-    ],
-  },
-  // Добавьте другие разделы по мере необходимости
-]
+import { useSections } from "../contexts/SectionsContext"
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { collectionDetails } = useSections()
+
+  const sidebarItems = [
+    {
+      title: "Главная страница",
+      items: [
+        { title: "Секция 1", href: "/admin/main/section-1" },
+        { title: "Секция 2", href: "/admin/main/section-2" },
+        { title: "Секция 3", href: "/admin/main/section-3" },
+        { title: "Секция 4", href: "/admin/main/section-4" },
+        { title: "Секция 5", href: "/admin/main/section-5" },
+      ],
+    },
+    {
+      title: "Коллекции",
+      items: [
+        { title: "Все коллекции", href: "/admin/collections" },
+        { title: "Добавить коллекцию", href: "/admin/collections/add" },
+        // Только для коллекций, которые есть в collectionDetails
+        ...collectionDetails.map((collection) => ({
+          title: `Редактировать ${collection.name.toUpperCase()}`,
+          href: `/admin/collections/edit/${collection.id}`,
+        })),
+      ],
+    },
+  ]
 
   return (
     <div className="w-64 bg-gray-100 border-r">

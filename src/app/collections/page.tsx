@@ -99,7 +99,7 @@ function CollectionCard({ item }: { item: CollectionItem }) {
           <p className="lg:text-desc">{item.desc}</p>
         </div>
         <div className="xl:pt-0 pt-10">
-          <Link href={item.link} className="text-desc border-b border-black">
+          <Link href={`/collections/collection-detail/${item.title.toLowerCase()}`} className="text-desc border-b border-black">
             Посмотреть
           </Link>
         </div>
