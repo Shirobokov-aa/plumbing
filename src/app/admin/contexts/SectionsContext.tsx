@@ -7,6 +7,7 @@ export interface ImageBlockData {
   src: string;
   alt: string;
   desc?: string;
+  url?: string
 }
 
 interface Section {
