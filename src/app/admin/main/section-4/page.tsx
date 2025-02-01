@@ -122,7 +122,7 @@ export default function Section4Admin() {
                 />
                 <Input
                   placeholder="URL"
-                  value={image.url}
+                  value={image.url || ""}
                   onChange={(e) => handleImageDataChange(index, "url", e.target.value)}
                 />
               </div>
