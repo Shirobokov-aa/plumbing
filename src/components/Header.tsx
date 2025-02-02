@@ -14,9 +14,9 @@ const categories = [
   {
     name: "Ванная",
     subcategories: [
-      { name: "Ванны", href: "/" },
-      { name: "Душевые", href: "/bathroom/showers" },
-      { name: "Раковины", href: "/bathroom/sinks" },
+      { name: "Ванная", href: "/bathroom" },
+      { name: "Душевые", href: "/bathroom" },
+      { name: "Раковины", href: "/bathroom" },
     ],
     images: ["/img/item10.png", "/img/item11.png", "/img/item12.png"],
   },
@@ -118,7 +118,7 @@ export default function Header({ defaultTextColor = "text-white", activeTextColo
                 onMouseEnter={() => handleMouseEnter(category.name)}
                 onMouseLeave={handleMouseLeave}
               >
-                <Link href={"/"} onClick={() => handleClick(category.name)} className="py-2 block">
+                <Link href={""} onClick={() => handleClick(category.name)} className="py-2 block">
                   {category.name}
                 </Link>
                 <div

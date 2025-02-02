@@ -7,7 +7,7 @@ export interface ImageBlockData {
   src: string;
   alt: string;
   desc?: string;
-  url?: string
+  url?: string;
 }
 
 interface Section {
@@ -20,6 +20,25 @@ interface Section {
 
 interface SectionsMainPage {
   [key: string]: Section;
+}
+
+interface BathroomSection {
+  title: string;
+  description: string;
+  link: { text: string; url: string };
+  images: ImageBlockData[];
+}
+
+interface BathroomPage {
+  banner: {
+    name: string;
+    image: string;
+    title: string;
+    description: string;
+    link: { text: string; url: string };
+  };
+  sections: BathroomSection[];
+  // sections2: BathroomSection[];
 }
 
 export interface CollectionItem {
@@ -72,9 +91,11 @@ interface SectionsContextType {
   sections: SectionsMainPage;
   collections: CollectionItem[];
   collectionDetails: CollectionDetail[];
+  bathroomPage: BathroomPage; // Добавляем новое свойство
   updateSection: (sectionKey: string, newData: Section) => void;
   updateCollections: (newCollections: CollectionItem[]) => void;
   updateCollectionDetail: (id: number, newData: CollectionDetail) => void;
+  updateBathroomPage: (newData: BathroomPage) => void; // Новая функция обновления
 }
 
 const SectionsContext = createContext<SectionsContextType | undefined>(undefined);
@@ -200,10 +221,8 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           description:
             "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
           link: { text: "Посмотреть", url: "/" },
-          images: [
-            { src: "/img/item01.png", alt: "Смеситель SONO 1" },
-          ],
-          titleDesc:"СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
+          images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
+          titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
           descriptionDesc: "A Chic Urban Apartment Trasformation",
         },
       ],
@@ -213,9 +232,7 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           description:
             "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
           link: { text: "Посмотреть", url: "/" },
-          images: [
-            { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-          ],
+          images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
         },
       ],
       sections4: [
@@ -228,7 +245,6 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             { src: "/img/item10.png", alt: "Смеситель SONO 1" },
             { src: "/img/item10.png", alt: "Смеситель SONO 1" },
             { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-
           ],
         },
       ],
@@ -270,10 +286,8 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           description:
             "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
           link: { text: "Посмотреть", url: "/" },
-          images: [
-            { src: "/img/item01.png", alt: "Смеситель SONO 1" },
-          ],
-          titleDesc:"СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
+          images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
+          titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
           descriptionDesc: "A Chic Urban Apartment Trasformation",
         },
       ],
@@ -283,9 +297,7 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           description:
             "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
           link: { text: "Посмотреть", url: "/" },
-          images: [
-            { src: "/img/item01.png", alt: "Смеситель SONO 1" },
-          ],
+          images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
         },
       ],
       sections4: [
@@ -294,13 +306,67 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           description:
             "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
           // link: { text: "Посмотреть", url: "/" },
-          images: [
-            { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-          ],
+          images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
         },
       ],
     },
   ]);
+
+  const [bathroomPage, setBathroomPage] = useState<BathroomPage>({
+    banner: {
+      name: "Ванная",
+      image: "/img/banner01.png",
+      title: "",
+      description: "",
+      link: { text: "Узнать больше", url: "/bathroom" },
+    },
+    sections: [
+      {
+        title: "Смесители для ванной и душа",
+        description: "Удобство, стиль и надежность в каждом решении",
+        link: { text: "Смотреть", url: "/bathroom/faucets" },
+        images: [
+          { src: "", alt: "Смеситель для ванной 1" },
+          { src: "", alt: "Смеситель для ванной 2" },
+          { src: "", alt: "Смеситель для ванной 3" },
+        ],
+      },
+      {
+        title: "Смесители для раковины",
+        description: "Удобство, стиль и надежность в каждом решении",
+        link: { text: "Смотреть", url: "/bathroom/faucets" },
+        images: [
+          { src: "", alt: "Смеситель для ванной 1" },
+          { src: "", alt: "Смеситель для ванной 2" },
+          { src: "", alt: "Смеситель для ванной 3" },
+        ],
+      },
+      {
+        title: "Душевые системы",
+        description: "Удобство, стиль и надежность в каждом решении",
+        link: { text: "Смотреть", url: "/bathroom/faucets" },
+        images: [
+          { src: "", alt: "Смеситель для ванной 1" },
+          { src: "", alt: "Смеситель для ванной 2" },
+          { src: "", alt: "Смеситель для ванной 3" },
+        ],
+      },
+      // Добавьте другие секции по необходимости
+    ],
+    // sections2: [
+    //   {
+    //     title: "Смесители для ванной и душа",
+    //     description: "Удобство, стиль и надежность в каждом решении",
+    //     link: { text: "Смотреть", url: "/bathroom/faucets" },
+    //     images: [
+    //       { src: "", alt: "Смеситель для ванной 1" },
+    //       { src: "", alt: "Смеситель для ванной 2" },
+    //       { src: "", alt: "Смеситель для ванной 3" },
+    //     ],
+    //   },
+    //   // Добавьте другие секции по необходимости
+    // ],
+  });
 
   const updateSection = (sectionKey: string, newData: Section) => {
     setSections((prevSections) => ({
@@ -317,9 +383,23 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCollectionDetails((prevDetails) => prevDetails.map((detail) => (detail.id === id ? newData : detail)));
   };
 
+  // Функция обновления данных страницы ванной
+  const updateBathroomPage = (newData: BathroomPage) => {
+    setBathroomPage(newData);
+  };
+
   return (
     <SectionsContext.Provider
-      value={{ sections, collections, collectionDetails, updateSection, updateCollections, updateCollectionDetail }}
+      value={{
+        sections,
+        collections,
+        collectionDetails,
+        bathroomPage, // Добавляем новое свойство
+        updateSection,
+        updateCollections,
+        updateCollectionDetail,
+        updateBathroomPage, // Добавляем новую функцию обновления
+      }}
     >
       {children}
     </SectionsContext.Provider>
