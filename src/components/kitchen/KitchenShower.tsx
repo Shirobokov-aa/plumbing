@@ -2,14 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ImageBlockData } from "../../app/admin/contexts/SectionsContext";
 
-interface BathSectionProps {
+interface KitchenSectionProps {
   title: string;
   description: string;
   link: { text: string; url: string };
   images: ImageBlockData[];
 }
 
-export default function BasinFaucets({ title, description, link, images }: BathSectionProps) {
+export default function KitchenShower({ title, description, link, images }: KitchenSectionProps) {
   return (
     <section>
       <div className="max-w-1440 mx-auto lg:px-24 px-5 pt-48">

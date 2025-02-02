@@ -23,9 +23,9 @@ const categories = [
   {
     name: "Кухня",
     subcategories: [
-      { name: "Мойки", href: "/kitchen/sinks" },
-      { name: "Смесители", href: "/kitchen/faucets" },
-      { name: "Столешницы", href: "/kitchen/countertops" },
+      { name: "Мойки", href: "/kitchen" },
+      { name: "Смесители", href: "/kitchen" },
+      { name: "Столешницы", href: "/kitchen" },
     ],
     images: ["/img/kitchen1.jpg", "/img/kitchen2.jpg", "/img/kitchen3.jpg", "/img/kitchen4.jpg"],
   },

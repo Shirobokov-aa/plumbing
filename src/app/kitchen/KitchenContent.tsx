@@ -1,7 +1,5 @@
 "use client"
 
-import BathroomBanner from "@/components/bathroom/BathroomBanner"
-import BathShower from "@/components/bathroom/BathShower"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,10 +9,13 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Slash } from "lucide-react"
 import { useSections } from "@/app/admin/contexts/SectionsContext"
-import BathroomCollection from "@/components/bathroom/BathroomCollection"
+import KitchenCollection from "@/components/kitchen/KitchenCollection"
+import KitchenBanner from "@/components/kitchen/KitchenBanner"
+import KitchenShower from "@/components/kitchen/KitchenShower"
 
-export default function BathroomPage() {
-  const { bathroomPage } = useSections()
+
+export default function KitchenPage() {
+  const { kitchenPage } = useSections()
 
   return (
     <>
@@ -29,23 +30,23 @@ export default function BathroomPage() {
                 <Slash />
               </BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/bathroom">Ванная</BreadcrumbLink>
+                <BreadcrumbLink href="/kitchen">Кухня</BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
       </section>
       <section>
-        <BathroomBanner {...bathroomPage.banner} />
+        <KitchenBanner {...kitchenPage.banner} />
       </section>
-      {bathroomPage.sections.map((section, index) => (
+      {kitchenPage.sections.map((section, index) => (
         <section key={index}>
-          <BathShower {...section} />
+          <KitchenShower {...section} />
         </section>
       ))}
-            {bathroomPage.collections.map((collection, index) => (
+            {kitchenPage.collections.map((collection, index) => (
         <section key={index}>
-          <BathroomCollection {...collection} />
+          <KitchenCollection {...collection} />
         </section>
       ))}
     </>

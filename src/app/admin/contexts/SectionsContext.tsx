@@ -29,6 +29,13 @@ interface BathroomSection {
   images: ImageBlockData[];
 }
 
+interface KitchenSection {
+  title: string;
+  description: string;
+  link: { text: string; url: string };
+  images: ImageBlockData[];
+}
+
 interface BathroomPage {
   banner: {
     name: string;
@@ -38,7 +45,33 @@ interface BathroomPage {
     link: { text: string; url: string };
   };
   sections: BathroomSection[];
-  // sections2: BathroomSection[];
+  collections: BathroomCollection[]
+}
+
+interface KitchenPage {
+  banner: {
+    name: string;
+    image: string;
+    title: string;
+    description: string;
+    link: { text: string; url: string };
+  };
+  sections: KitchenSection[];
+  collections: KitchenCollection[]
+}
+
+interface BathroomCollection {
+  title: string
+  description: string
+  link: { text: string; url: string }
+  images: ImageBlockData[]
+}
+
+interface KitchenCollection {
+  title: string
+  description: string
+  link: { text: string; url: string }
+  images: ImageBlockData[]
 }
 
 export interface CollectionItem {
@@ -92,10 +125,12 @@ interface SectionsContextType {
   collections: CollectionItem[];
   collectionDetails: CollectionDetail[];
   bathroomPage: BathroomPage; // Добавляем новое свойство
+  kitchenPage: KitchenPage; // Добавляем новое свойство
   updateSection: (sectionKey: string, newData: Section) => void;
   updateCollections: (newCollections: CollectionItem[]) => void;
   updateCollectionDetail: (id: number, newData: CollectionDetail) => void;
   updateBathroomPage: (newData: BathroomPage) => void; // Новая функция обновления
+  updateKitchenPage: (newData: KitchenPage) => void; // Новая функция обновления
 }
 
 const SectionsContext = createContext<SectionsContextType | undefined>(undefined);
@@ -353,19 +388,69 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       // Добавьте другие секции по необходимости
     ],
-    // sections2: [
-    //   {
-    //     title: "Смесители для ванной и душа",
-    //     description: "Удобство, стиль и надежность в каждом решении",
-    //     link: { text: "Смотреть", url: "/bathroom/faucets" },
-    //     images: [
-    //       { src: "", alt: "Смеситель для ванной 1" },
-    //       { src: "", alt: "Смеситель для ванной 2" },
-    //       { src: "", alt: "Смеситель для ванной 3" },
-    //     ],
-    //   },
-    //   // Добавьте другие секции по необходимости
-    // ],
+    collections: [
+      // Добавляем новые данные для коллекций
+      {
+        title: "Коллекция для ванной",
+        description: "Элегантность и функциональность в каждой детали",
+        link: { text: "Подробнее", url: "/bathroom/collections/1" },
+        images: [
+          { src: "/img/item01.png", alt: "Коллекция для ванной 1" },
+          { src: "/img/item01.png", alt: "Коллекция для ванной 2" },
+          { src: "/img/item01.png", alt: "Коллекция для ванной 3" },
+        ],
+      },
+      // Добавьте дополнительные коллекции по необходимости
+    ],
+
+  });
+
+  const [kitchenPage, setKitchenPage] = useState<KitchenPage>({
+    banner: {
+      name: "Кухня",
+      image: "/img/banner01.png",
+      title: "",
+      description: "",
+      link: { text: "Узнать больше", url: "/kitchen" },
+    },
+    sections: [
+      {
+        title: "Смесители для кухни",
+        description: "Комфорт, качество и элегантность для вашей ванной комнаты",
+        link: { text: "Смотреть", url: "/kitchen/faucets" },
+        images: [
+          { src: "", alt: "Смеситель для кухни 1" },
+          { src: "", alt: "Смеситель для кухни 2" },
+          { src: "", alt: "Смеситель для кухни 3" },
+        ],
+      },
+      {
+        title: "Аксессуары",
+        description: "Детали, которые добавляют удобство и стиль.",
+        link: { text: "Смотреть", url: "/kitchen/faucets" },
+        images: [
+          { src: "", alt: "Смеситель для кухни 1" },
+          { src: "", alt: "Смеситель для кухни 2" },
+          { src: "", alt: "Смеситель для кухни 3" },
+        ],
+      },
+      // Добавьте другие секции по необходимости
+    ],
+    collections: [
+      // Добавляем новые данные для коллекций
+      {
+        title: "Коллекция для кухни",
+        description: "Элегантность и функциональность в каждой детали",
+        link: { text: "Подробнее", url: "/kitchen/collections/1" },
+        images: [
+          { src: "/img/item01.png", alt: "Коллекция для ванной 1" },
+          { src: "/img/item02.png", alt: "Коллекция для ванной 2" },
+          { src: "/img/item03.png", alt: "Коллекция для ванной 3" },
+        ],
+      },
+      // Добавьте дополнительные коллекции по необходимости
+    ],
+
   });
 
   const updateSection = (sectionKey: string, newData: Section) => {
@@ -383,9 +468,13 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCollectionDetails((prevDetails) => prevDetails.map((detail) => (detail.id === id ? newData : detail)));
   };
 
-  // Функция обновления данных страницы ванной
+  // Функция обновления данных страницы ванной Kitchen
   const updateBathroomPage = (newData: BathroomPage) => {
     setBathroomPage(newData);
+  };
+
+  const updateKitchenPage = (newData: KitchenPage) => {
+    setKitchenPage(newData);
   };
 
   return (
@@ -395,10 +484,12 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         collections,
         collectionDetails,
         bathroomPage, // Добавляем новое свойство
+        kitchenPage, // Добавляем новое свойство
         updateSection,
         updateCollections,
         updateCollectionDetail,
         updateBathroomPage, // Добавляем новую функцию обновления
+        updateKitchenPage, // Добавляем новую функцию обновления
       }}
     >
       {children}

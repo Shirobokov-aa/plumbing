@@ -34,6 +34,24 @@ export function Sidebar() {
         })),
       ],
     },
+    {
+      title: "Ванная", // Новый раздел
+      items: [
+        // { title: "Общие настройки", href: "/admin/bathroom" },
+        { title: "Баннер", href: "/admin/bathroom/banner" },
+        { title: "Секции", href: "/admin/bathroom/sections" },
+        { title: "Коллекции", href: "/admin/bathroom/collections" },
+      ],
+    },
+    {
+      title: "Кухня", // Новый раздел
+      items: [
+        // { title: "Общие настройки", href: "/admin/bathroom" },
+        { title: "Баннер", href: "/admin/kitchen/banner" },
+        { title: "Секции", href: "/admin/kitchen/sections" },
+        { title: "Коллекции", href: "/admin/kitchen/collections" },
+      ],
+    },
   ]
 
   return (
