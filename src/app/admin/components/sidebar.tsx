@@ -52,6 +52,14 @@ export function Sidebar() {
         { title: "Коллекции", href: "/admin/kitchen/collections" },
       ],
     },
+    {
+      title: "О компании",
+      items: [
+        { title: "Общие настройки", href: "/admin/about" },
+        { title: "Баннер", href: "/admin/about/banner" },
+        { title: "Секции", href: "/admin/about/sections" },
+      ],
+    },
   ]
 
   return (

@@ -35,6 +35,12 @@ interface KitchenSection {
   link: { text: string; url: string };
   images: ImageBlockData[];
 }
+interface AboutSection {
+  title: string;
+  description: string;
+  // link: { text: string; url: string };
+  // images: ImageBlockData[];
+}
 
 interface BathroomPage {
   banner: {
@@ -45,7 +51,7 @@ interface BathroomPage {
     link: { text: string; url: string };
   };
   sections: BathroomSection[];
-  collections: BathroomCollection[]
+  collections: BathroomCollection[];
 }
 
 interface KitchenPage {
@@ -57,21 +63,33 @@ interface KitchenPage {
     link: { text: string; url: string };
   };
   sections: KitchenSection[];
-  collections: KitchenCollection[]
+  collections: KitchenCollection[];
+}
+
+interface AboutPage {
+  banner: {
+    name: string;
+    image: string;
+    title: string;
+    description: string;
+    link: { text: string; url: string };
+  };
+  sections: AboutSection[];
+  // collections: KitchenCollection[]
 }
 
 interface BathroomCollection {
-  title: string
-  description: string
-  link: { text: string; url: string }
-  images: ImageBlockData[]
+  title: string;
+  description: string;
+  link: { text: string; url: string };
+  images: ImageBlockData[];
 }
 
 interface KitchenCollection {
-  title: string
-  description: string
-  link: { text: string; url: string }
-  images: ImageBlockData[]
+  title: string;
+  description: string;
+  link: { text: string; url: string };
+  images: ImageBlockData[];
 }
 
 export interface CollectionItem {
@@ -126,11 +144,13 @@ interface SectionsContextType {
   collectionDetails: CollectionDetail[];
   bathroomPage: BathroomPage; // Добавляем новое свойство
   kitchenPage: KitchenPage; // Добавляем новое свойство
+  aboutPage: AboutPage; // Добавляем новое свойство
   updateSection: (sectionKey: string, newData: Section) => void;
   updateCollections: (newCollections: CollectionItem[]) => void;
   updateCollectionDetail: (id: number, newData: CollectionDetail) => void;
   updateBathroomPage: (newData: BathroomPage) => void; // Новая функция обновления
   updateKitchenPage: (newData: KitchenPage) => void; // Новая функция обновления
+  updateAboutPage: (newData: AboutPage) => void; // Новая функция обновления
 }
 
 const SectionsContext = createContext<SectionsContextType | undefined>(undefined);
@@ -402,7 +422,6 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       // Добавьте дополнительные коллекции по необходимости
     ],
-
   });
 
   const [kitchenPage, setKitchenPage] = useState<KitchenPage>({
@@ -450,7 +469,23 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       // Добавьте дополнительные коллекции по необходимости
     ],
+  });
 
+  const [aboutPage, setAboutPage] = useState<AboutPage>({
+    banner: {
+      name: "О Компании",
+      image: "/img/banner01.png",
+      title: "",
+      description: "",
+      link: { text: "Посмотреть Коллекции", url: "/collection" },
+    },
+    sections: [
+      {
+        title: "О нас",
+        description:
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit i",
+      },
+    ],
   });
 
   const updateSection = (sectionKey: string, newData: Section) => {
@@ -468,13 +503,16 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCollectionDetails((prevDetails) => prevDetails.map((detail) => (detail.id === id ? newData : detail)));
   };
 
-  // Функция обновления данных страницы ванной Kitchen
+  // Функция обновления данных страницы ванной
   const updateBathroomPage = (newData: BathroomPage) => {
     setBathroomPage(newData);
   };
 
   const updateKitchenPage = (newData: KitchenPage) => {
     setKitchenPage(newData);
+  };
+  const updateAboutPage = (newData: AboutPage) => {
+    setAboutPage(newData);
   };
 
   return (
@@ -485,11 +523,13 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         collectionDetails,
         bathroomPage, // Добавляем новое свойство
         kitchenPage, // Добавляем новое свойство
+        aboutPage, // Добавляем новое свойство
         updateSection,
         updateCollections,
         updateCollectionDetail,
         updateBathroomPage, // Добавляем новую функцию обновления
         updateKitchenPage, // Добавляем новую функцию обновления
+        updateAboutPage, // Добавляем новую функцию обновления
       }}
     >
       {children}

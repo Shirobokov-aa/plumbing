@@ -9,12 +9,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Slash } from "lucide-react";
 import { useSections } from "@/app/admin/contexts/SectionsContext";
-import KitchenCollection from "@/components/kitchen/KitchenCollection";
-import KitchenBanner from "@/components/kitchen/KitchenBanner";
-import KitchenShower from "@/components/kitchen/KitchenShower";
+import AboutBanner from "@/components/about/AboutBanner";
+import AboutShower from "@/components/about/AboutShower";
 
-export default function KitchenPage() {
-  const { kitchenPage } = useSections();
+export default function AboutPage() {
+  const { aboutPage } = useSections();
 
   return (
     <>
@@ -29,25 +28,22 @@ export default function KitchenPage() {
                 <Slash />
               </BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/kitchen">Кухня</BreadcrumbLink>
+                <BreadcrumbLink href="/kitchen">О компании</BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
       </section>
       <section>
-        <KitchenBanner {...kitchenPage.banner} />
+        <AboutBanner {...aboutPage.banner} />
       </section>
-      {kitchenPage.sections.map((section, index) => (
-        <section key={index}>
-          <KitchenShower {...section} />
-        </section>
-      ))}
-      {kitchenPage.collections.map((collection, index) => (
-        <section key={index}>
-          <KitchenCollection {...collection} />
-        </section>
-      ))}
+      <section>
+        {aboutPage.sections.map((section, index) => (
+          <section key={index}>
+            <AboutShower {...section} />
+          </section>
+        ))}
+      </section>
     </>
   );
 }
