@@ -158,7 +158,7 @@ const SectionsContext = createContext<SectionsContextType | undefined>(undefined
 export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sections, setSections] = useState<SectionsMainPage>({
     "section-1": {
-      title: "Привет мир 123",
+      title: "Привет мир 123567",
       description: "Какое то описание из объекта",
       link: { name: "Посмотреть", url: "/123123" },
       images_block: [

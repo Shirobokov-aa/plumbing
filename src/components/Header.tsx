@@ -4,33 +4,14 @@ import Link from "next/link"
 import { Search, Menu, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import HoverMenu from "./HoverMenu"
+import { useSections } from "@/app/admin/contexts/SectionsContext"
 
 interface HeaderProps {
   defaultTextColor?: string
   activeTextColor?: string
 }
 
-const categories = [
-  {
-    name: "Ванная",
-    subcategories: [
-      { name: "Ванная", href: "/bathroom" },
-      { name: "Душевые", href: "/bathroom" },
-      { name: "Раковины", href: "/bathroom" },
-    ],
-    images: ["/img/item10.png", "/img/item11.png", "/img/item12.png"],
-  },
-  {
-    name: "Кухня",
-    subcategories: [
-      { name: "Мойки", href: "/kitchen" },
-      { name: "Смесители", href: "/kitchen" },
-      { name: "Столешницы", href: "/kitchen" },
-    ],
-    images: ["/img/kitchen1.jpg", "/img/kitchen2.jpg", "/img/kitchen3.jpg", "/img/kitchen4.jpg"],
-  },
-  // Добавьте остальные категории по необходимости
-]
+
 
 export default function Header({ defaultTextColor = "text-white", activeTextColor = "text-black" }: HeaderProps) {
   const [isVisible, setIsVisible] = useState(true)
@@ -39,6 +20,37 @@ export default function Header({ defaultTextColor = "text-white", activeTextColo
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isMenuLocked, setIsMenuLocked] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const { collectionDetails } = useSections()
+
+  const categories = [
+  {
+    name: "Ванная",
+    subcategories: [
+      { name: "Смесители для ванной и душа", href: "/bathroom" },
+      { name: "Смесители для раковины", href: "/bathroom" },
+      { name: "Душевые системы", href: "/bathroom" },
+    ],
+    images: ["/img/item10.png", "/img/item11.png", "/img/item12.png"],
+  },
+  {
+    name: "Кухня",
+    subcategories: [
+      { name: "Смесители для кухни", href: "/kitchen" },
+      { name: "Аксессуары", href: "/kitchen" },
+    ],
+    images: ["", "/img/item11.png", "",],
+  },
+  {
+    name: "Коллекции",
+    subcategories: collectionDetails.map((collection) => ({
+      name: collection.name,
+      href: `/collections/collection-detail/${collection.name.toLowerCase()}`,
+    })),
+    images: ["/img/item11.png", "", ""],
+  },
+  // Добавьте остальные категории по необходимости
+]
 
   useEffect(() => {
     const handleScroll = () => {
