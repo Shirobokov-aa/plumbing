@@ -10,91 +10,97 @@ import { useSections } from "../contexts/SectionsContext"
 import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-// Используем тот же интерфейс CollectionItem, что и в SectionsContext
 import type { CollectionItem } from "../contexts/SectionsContext"
 
+type CollectionsType = CollectionItem[] | { data: CollectionItem[] };
+
+
 export default function CollectionsAdmin() {
-  const { collections, updateCollections } = useSections()
-  const [collectionsData, setCollectionsData] = useState<CollectionItem[]>(collections)
+const { collections, updateCollections } = useSections() as { collections: CollectionsType; updateCollections: (data: CollectionItem[]) => void };
+
+  console.log("Загруженные коллекции:", collections); // Логируем загруженные коллекции
+
+  const [collectionsData, setCollectionsData] = useState<CollectionItem[]>([]);
 
   useEffect(() => {
-    setCollectionsData(collections)
-  }, [collections])
+    const collectionsArray = Array.isArray(collections) ? collections : [];
+    setCollectionsData(collectionsArray);
+    console.log("Обновленные коллекции:", collectionsArray);
+  }, [collections]);
 
   const handleSave = () => {
-    updateCollections(collectionsData)
-    console.log("Изменения сохранены:", collectionsData)
+    updateCollections(collectionsData);
+    console.log("Изменения сохранены:", collectionsData);
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
         setCollectionsData((prev) => {
-          const newCollections = [...prev]
+          const newCollections = [...prev];
           newCollections[index] = {
             ...newCollections[index],
             image: reader.result as string,
-          }
-          return newCollections
-        })
-      }
-      reader.readAsDataURL(file)
+          };
+          return newCollections;
+        });
+      };
+      reader.readAsDataURL(file);
     }
   }
 
   const handleCollectionChange = (index: number, field: keyof CollectionItem, value: string) => {
     setCollectionsData((prev) => {
-      const newCollections = [...prev]
+      const newCollections = [...prev];
       newCollections[index] = {
         ...newCollections[index],
         [field]: value,
-      }
-      return newCollections
-    })
+      };
+      return newCollections;
+    });
   }
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Редактирование Коллекций (превью на общей странице)</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {collectionsData.map((collection, index) => (
+        {collectionsData.map((collection) => (
           <Card key={collection.id} className="w-full">
             <CardHeader>
               <CardTitle>{collection.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor={`title-${index}`}>Заголовок</Label>
+                <Label htmlFor={`title-${collection.id}`}>Заголовок</Label>
                 <Input
-                  id={`title-${index}`}
+                  id={`title-${collection.id}`}
                   value={collection.title}
-                  onChange={(e) => handleCollectionChange(index, "title", e.target.value)}
+                  onChange={(e) => handleCollectionChange(collection.id, "title", e.target.value)}
                 />
               </div>
               <div>
-                <Label htmlFor={`desc-${index}`}>Описание</Label>
+                <Label htmlFor={`desc-${collection.id}`}>Описание</Label>
                 <Textarea
-                  id={`desc-${index}`}
+                  id={`desc-${collection.id}`}
                   value={collection.desc}
-                  onChange={(e) => handleCollectionChange(index, "desc", e.target.value)}
+                  onChange={(e) => handleCollectionChange(collection.id, "desc", e.target.value)}
                 />
               </div>
               <div>
-                <Label htmlFor={`link-${index}`}>Ссылка</Label>
+                <Label htmlFor={`link-${collection.id}`}>Ссылка</Label>
                 <Input
-                  id={`link-${index}`}
+                  id={`link-${collection.id}`}
                   value={collection.link}
-                  onChange={(e) => handleCollectionChange(index, "link", e.target.value)}
+                  onChange={(e) => handleCollectionChange(collection.id, "link", e.target.value)}
                 />
               </div>
               <div>
-                <Label htmlFor={`flexDirection-${index}`}>Направление flex</Label>
+                <Label htmlFor={`flexDirection-${collection.id}`}>Направление flex</Label>
                 <Select
                   onValueChange={(value) =>
-                    handleCollectionChange(index, "flexDirection", value as "xl:flex-row" | "xl:flex-row-reverse")
+                    handleCollectionChange(collection.id, "flexDirection", value as "xl:flex-row" | "xl:flex-row-reverse")
                   }
                   defaultValue={collection.flexDirection}
                 >
@@ -114,10 +120,10 @@ export default function CollectionsAdmin() {
                     width={300}
                     height={300}
                     src={collection.image || "/placeholder.svg"}
-                    alt={collection.title}
+                    alt={collection.title || 'Изображение коллекции'} // Добавлено значение по умолчанию для alt
                     className="w-full h-40 object-contain"
                   />
-                  <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, index)} />
+                  <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, collection.id)} />
                 </div>
               </div>
             </CardContent>
@@ -128,4 +134,3 @@ export default function CollectionsAdmin() {
     </div>
   )
 }
-

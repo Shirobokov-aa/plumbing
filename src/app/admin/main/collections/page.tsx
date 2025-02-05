@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import Link from "next/link";
-import Image from "next/image";
-import type { CollectionItem } from "../admin/contexts/SectionsContext"
+import Footer from "@/components/Footer"
+import Header from "@/components/Header"
+import Link from "next/link"
+import Image from "next/image"
+import type { CollectionItem } from "@/app/admin/contexts/SectionsContext"
 
 function CollectionCard({ item }: { item: CollectionItem }) {
   return (
@@ -14,7 +14,7 @@ function CollectionCard({ item }: { item: CollectionItem }) {
         {item.image ? (
           <Image 
             src={item.image} 
-            alt={item.title || 'Изображение коллекции'}
+            alt={item.title || 'Изображение коллекции'} // Добавлено значение по умолчанию для alt
             width={526} 
             height={526} 
             className="object-contain" 
@@ -53,28 +53,22 @@ export default function Collections() {
       try {
         setIsLoading(true)
         const response = await fetch('/api/collections')
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || 'Ошибка загрузки данных')
-        }
+        if (!response.ok) throw new Error('Ошибка загрузки данных') // Обработка ошибок
         const data = await response.json()
-        console.log("Загруженные коллекции:", data)
+        console.log("Загруженные коллекции:", data) // Лог для отладки
         if (Array.isArray(data)) {
           setCollections(data)
-        } else if (data && Array.isArray(data.data)) {
-          setCollections(data.data)
         } else {
-          console.error("Неожиданный формат данных:", data)
           setCollections([])
         }
       } catch (error) {
         console.error('Ошибка загрузки коллекций:', error)
-        setError(error instanceof Error ? error.message : 'Произошла неизвестная ошибка')
+        setError(error instanceof Error ? error.message : 'Произошла ошибка')
       } finally {
         setIsLoading(false)
       }
     }
-  
+
     fetchCollections()
   }, [])
 
@@ -101,5 +95,5 @@ export default function Collections() {
       </section>
       <Footer />
     </div>
-  );
-}
+  )
+} 
