@@ -8,7 +8,7 @@ interface ImageBlockItem {
 
 export default function ImageBlock({ images }: { images: ImageBlockItem[] }) {
   return (
-    <div className="xl:max-w-[840px] w-full grid xl:grid-cols-3 lg:grid-cols-2 grid-cols-1 gap-5">
+    <div className="xl:max-w-[840px] w-full flex flex-col gap-5">
       {images.map((image, index) => (
         <div key={index} className="relative">
           <Image

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
+import { toast } from "sonner"
 
 interface Section3Data {
   title: string;
@@ -64,8 +65,10 @@ export default function MainSection3Page() {
   const handleSave = async () => {
     try {
       await updateSection("section-3", sectionData)
+      toast.success("Секция успешно обновлена")
     } catch (error) {
       console.error("Error saving section:", error)
+      toast.error("Ошибка при обновлении секции")
     }
   }
 

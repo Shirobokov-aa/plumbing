@@ -186,6 +186,7 @@ interface SectionsContextType {
   updateAboutPage: (newData: AboutPage) => void;
   fetchCollections: () => Promise<void>;
   fetchCollectionDetails: () => Promise<void>;
+  fetchAboutPage: () => Promise<void>;
 }
 
 export const SectionsContext = createContext<SectionsContextType | null>(null)
@@ -549,11 +550,109 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     fetchBathroomPage();
   }, []);
 
-  const updateKitchenPage = (newData: KitchenPage) => {
-    setKitchenPage(newData);
+  const updateKitchenPage = async (newData: KitchenPage) => {
+    try {
+      const response = await fetch('/api/kitchenPage', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: newData }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Ошибка обновления: ${errorText}`);
+      }
+
+      // Получаем обновленные данные с сервера
+      const updatedData = await response.json();
+      setKitchenPage(updatedData.data); // Обновляем состояние актуальными данными
+
+      setAlert({
+        message: 'Страница кухни успешно обновлена',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Ошибка при обновлении:', error);
+      setAlert({
+        message: 'Ошибка при обновлении страницы',
+        type: 'error'
+      });
+    }
   };
-  const updateAboutPage = (newData: AboutPage) => {
-    setAboutPage(newData);
+
+  const fetchKitchenPage = async () => {
+    try {
+      const response = await fetch('/api/kitchenPage');
+      if (!response.ok) {
+        throw new Error('Failed to fetch kitchen page data');
+      }
+      const data = await response.json();
+      setKitchenPage(data.data);
+    } catch (error) {
+      console.error('Error fetching kitchen page:', error);
+      setAlert({
+        message: 'Ошибка при загрузке данных',
+        type: 'error'
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchKitchenPage();
+  }, []);
+
+  const fetchAboutPage = async () => {
+    try {
+      const response = await fetch('/api/aboutPage');
+      if (!response.ok) {
+        throw new Error('Failed to fetch about page data');
+      }
+      const data = await response.json();
+      setAboutPage(data.data);
+    } catch (error) {
+      console.error('Error fetching about page:', error);
+      setAlert({
+        message: 'Ошибка при загрузке данных',
+        type: 'error'
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchAboutPage();
+  }, []);
+
+  const updateAboutPage = async (newData: any) => {
+    try {
+      const response = await fetch('/api/aboutPage', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: newData }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update about page');
+      }
+
+      const updatedData = await response.json();
+      setAboutPage(updatedData.data);
+      
+      // После успешного обновления, перезагружаем данные
+      await fetchAboutPage();
+      
+      setAlert({
+        message: 'Страница О компании успешно обновлена',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Error updating about page:', error);
+      setAlert({
+        message: 'Ошибка при обновлении страницы',
+        type: 'error'
+      });
+    }
   };
 
   return (
@@ -573,6 +672,7 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateAboutPage,
         fetchCollections,
         fetchCollectionDetails,
+        fetchAboutPage,
       }}
     >
       {alert && <Alert message={alert.message} type={alert.type} />}

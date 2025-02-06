@@ -13,8 +13,12 @@ import KitchenCollection from "@/components/kitchen/KitchenCollection";
 import KitchenBanner from "@/components/kitchen/KitchenBanner";
 import KitchenShower from "@/components/kitchen/KitchenShower";
 
-export default function KitchenPage() {
+export default function KitchenContent() {
   const { kitchenPage } = useSections();
+
+  if (!kitchenPage) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -38,16 +42,16 @@ export default function KitchenPage() {
       <section>
         <KitchenBanner {...kitchenPage.banner} />
       </section>
-      {kitchenPage.sections.map((section, index) => (
+      {kitchenPage.sections?.map((section, index) => (
         <section key={index}>
           <KitchenShower {...section} />
         </section>
       ))}
-      {kitchenPage.collections.map((collection, index) => (
+      {/* {kitchenPage.collections?.map((collection, index) => (
         <section key={index}>
           <KitchenCollection {...collection} />
         </section>
-      ))}
+      ))} */}
     </>
   );
 }

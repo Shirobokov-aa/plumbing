@@ -12,8 +12,12 @@ import { useSections } from "@/app/admin/contexts/SectionsContext";
 import AboutBanner from "@/components/about/AboutBanner";
 import AboutShower from "@/components/about/AboutShower";
 
-export default function AboutPage() {
+export default function AboutContent() {
   const { aboutPage } = useSections();
+
+  if (!aboutPage) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -28,7 +32,7 @@ export default function AboutPage() {
                 <Slash />
               </BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/kitchen">О компании</BreadcrumbLink>
+                <BreadcrumbLink href="/about">О компании</BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -37,13 +41,11 @@ export default function AboutPage() {
       <section>
         <AboutBanner {...aboutPage.banner} />
       </section>
-      <section>
-        {aboutPage.sections.map((section, index) => (
-          <section key={index}>
-            <AboutShower {...section} />
-          </section>
-        ))}
-      </section>
+      {aboutPage.sections.map((section, index) => (
+        <section key={index}>
+          <AboutShower {...section} />
+        </section>
+      ))}
     </>
   );
 }

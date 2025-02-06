@@ -21,6 +21,16 @@ export const bathroomPageTable = pgTable('bathroom_page', {
   data: jsonb('data').notNull()
 });
 
+export const kitchenPageTable = pgTable('kitchen_page', {
+  id: serial('id').primaryKey().notNull(),
+  data: jsonb('data').notNull()
+});
+
+export const aboutPageTable = pgTable('about_page', {
+  id: serial('id').primaryKey().notNull(),
+  data: jsonb('data').notNull()
+});
+
 // export const sectionsTable = pgTable('sections', {
 //   id: integer('id').primaryKey().notNull(),
 //   key: text('key').notNull(),

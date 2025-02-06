@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSections } from "../../contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,14 +10,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AboutSectionsAdminPage() {
   const { aboutPage, updateAboutPage } = useSections()
-  const [sections, setSections] = useState(aboutPage.sections)
+  const [sections, setSections] = useState<any[]>([])
 
-  const handleSave = () => {
-    updateAboutPage({ ...aboutPage, sections })
+  useEffect(() => {
+    if (aboutPage?.sections) {
+      setSections(aboutPage.sections)
+    }
+  }, [aboutPage])
+
+  if (!sections.length) {
+    return <div>Loading...</div>
+  }
+
+  const handleSave = async () => {
+    if (!aboutPage) return
+    try {
+      await updateAboutPage({
+        ...aboutPage,
+        sections: sections
+      })
+    } catch (error) {
+      console.error('Error updating sections:', error)
+    }
   }
 
   const handleSectionChange = (index: number, field: string, value: string) => {
-    setSections((prev) => {
+    setSections(prev => {
       const newSections = [...prev]
       newSections[index] = { ...newSections[index], [field]: value }
       return newSections

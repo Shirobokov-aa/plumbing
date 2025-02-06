@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
+import { toast } from "sonner"
 
 interface Section2Data {
   link: {
@@ -47,8 +48,10 @@ export default function MainSection2Page() {
   const handleSave = async () => {
     try {
       await updateSection("section-2", sectionData)
+      toast.success("Секция успешно обновлена")
     } catch (error) {
       console.error("Error saving section:", error)
+      toast.error("Ошибка при обновлении секции")
     }
   }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSections } from "../../contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,18 +10,29 @@ import Image from "next/image"
 
 export default function KitchenBannerAdminPage() {
   const { kitchenPage, updateKitchenPage } = useSections()
-  const [banner, setBanner] = useState(kitchenPage.banner)
+  const [banner, setBanner] = useState<any>(null)
+
+  useEffect(() => {
+    if (kitchenPage?.banner) {
+      setBanner(kitchenPage.banner)
+    }
+  }, [kitchenPage])
+
+  if (!banner) {
+    return <div>Loading...</div>
+  }
 
   const handleSave = () => {
+    if (!kitchenPage) return
     updateKitchenPage({ ...kitchenPage, banner })
   }
 
   const handleChange = (field: string, value: string) => {
-    setBanner((prev) => ({ ...prev, [field]: value }))
+    setBanner((prev: any) => ({ ...prev, [field]: value }))
   }
 
   const handleLinkChange = (field: string, value: string) => {
-    setBanner((prev) => ({ ...prev, link: { ...prev.link, [field]: value } }))
+    setBanner((prev: any) => ({ ...prev, link: { ...prev.link, [field]: value } }))
   }
 
   return (

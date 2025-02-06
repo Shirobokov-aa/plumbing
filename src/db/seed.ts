@@ -1,7 +1,7 @@
 // import { db } from "./index"
 // import { collectionsTable, sectionsTable, collectionDetailsTable } from "./schema"
 import { eq } from "drizzle-orm"
-import { collectionDetailsTable, collectionsTable, sectionsTable, bathroomPageTable } from "./schema"
+import { collectionDetailsTable, collectionsTable, sectionsTable, bathroomPageTable, kitchenPageTable, aboutPageTable } from "./schema"
 import { db } from "."
 
 const initialCollections = [
@@ -254,6 +254,104 @@ const initialBathroomPageData = {
   ],
 };
 
+const initialKitchenPageData = {
+  banner: {
+    name: "Кухня",
+    image: "/img/kitchen-banner.png",
+    title: "Современные решения для вашей кухни",
+    description: "Инновационные смесители и аксессуары для комфортного приготовления",
+    link: { text: "Узнать больше", url: "/kitchen" },
+  },
+  sections: [
+    {
+      title: "Смесители для кухни",
+      description: "Функциональность и стиль для вашей кухни. Широкий выбор моделей с различными типами излива и способами управления.",
+      link: { text: "Смотреть", url: "/kitchen/faucets" },
+      images: [
+        { src: "/img/kitchen-faucet-1.png", alt: "Смеситель для кухни 1" },
+        { src: "/img/kitchen-faucet-2.png", alt: "Смеситель для кухни 2" },
+        { src: "/img/kitchen-faucet-3.png", alt: "Смеситель для кухни 3" },
+      ],
+    },
+    {
+      title: "Мойки",
+      description: "Кухонные мойки из высококачественных материалов. Различные формы и размеры для любого интерьера.",
+      link: { text: "Подробнее", url: "/kitchen/sinks" },
+      images: [
+        { src: "/img/kitchen-sink-1.png", alt: "Кухонная мойка 1" },
+        { src: "/img/kitchen-sink-2.png", alt: "Кухонная мойка 2" },
+        { src: "/img/kitchen-sink-3.png", alt: "Кухонная мойка 3" },
+      ],
+    },
+    {
+      title: "Аксессуары",
+      description: "Дополнительные аксессуары для организации рабочего пространства на кухне. Дозаторы, держатели и многое другое.",
+      link: { text: "Посмотреть", url: "/kitchen/accessories" },
+      images: [
+        { src: "/img/kitchen-acc-1.png", alt: "Аксессуар 1" },
+        { src: "/img/kitchen-acc-2.png", alt: "Аксессуар 2" },
+        { src: "/img/kitchen-acc-3.png", alt: "Аксессуар 3" },
+      ],
+    }
+  ],
+  collections: [
+    {
+      title: "Коллекция MODERN",
+      description: "Современный дизайн и инновационные технологии для вашей кухни. Полный набор элементов для создания единого стиля.",
+      link: { text: "Подробнее", url: "/kitchen/collections/modern" },
+      images: [
+        { src: "/img/kitchen-modern-1.png", alt: "Коллекция Modern 1" },
+        { src: "/img/kitchen-modern-2.png", alt: "Коллекция Modern 2" },
+        { src: "/img/kitchen-modern-3.png", alt: "Коллекция Modern 3" },
+      ],
+    },
+    {
+      title: "Коллекция CLASSIC",
+      description: "Классические формы и проверенные временем решения. Идеальное сочетание традиций и функциональности.",
+      link: { text: "Подробнее", url: "/kitchen/collections/classic" },
+      images: [
+        { src: "/img/kitchen-classic-1.png", alt: "Коллекция Classic 1" },
+        { src: "/img/kitchen-classic-2.png", alt: "Коллекция Classic 2" },
+        { src: "/img/kitchen-classic-3.png", alt: "Коллекция Classic 3" },
+      ],
+    },
+    {
+      title: "Коллекция PREMIUM",
+      description: "Эксклюзивные модели премиум-класса. Уникальный дизайн и материалы высочайшего качества.",
+      link: { text: "Подробнее", url: "/kitchen/collections/premium" },
+      images: [
+        { src: "/img/kitchen-premium-1.png", alt: "Коллекция Premium 1" },
+        { src: "/img/kitchen-premium-2.png", alt: "Коллекция Premium 2" },
+        { src: "/img/kitchen-premium-3.png", alt: "Коллекция Premium 3" },
+      ],
+    }
+  ],
+};
+
+const initialAboutPageData = {
+  banner: {
+    name: "О компании",
+    image: "/img/about-banner.png",
+    title: "История и ценности компании",
+    description: "Создаем инновационные решения для вашего комфорта с 1995 года",
+    link: { text: "Узнать больше", url: "/about" },
+  },
+  sections: [
+    {
+      title: "Наша история",
+      description: "Более 25 лет мы создаем инновационные решения для ванных комнат и кухонь. Начав как небольшая компания, сегодня мы являемся одним из лидеров рынка сантехники в России.",
+    },
+    {
+      title: "Миссия компании",
+      description: "Наша миссия - создавать продукты, которые делают жизнь людей комфортнее. Мы стремимся к инновациям, но никогда не забываем о качестве и надежности.",
+    },
+    {
+      title: "Производство",
+      description: "Собственное производство оснащено современным оборудованием. Мы контролируем каждый этап создания продукции, гарантируя высочайшее качество.",
+    }
+  ]
+};
+
 async function seedBathroomPage() {
   try {
     const existing = await db.select().from(bathroomPageTable);
@@ -334,6 +432,47 @@ async function seedCollectionDetails() {
   }
 }
 
+async function seedKitchenPage() {
+  try {
+    const existing = await db.select().from(kitchenPageTable);
+
+    if (existing.length === 0) {
+      await db.insert(kitchenPageTable).values({
+        data: initialKitchenPageData,
+      });
+      console.log("✅ Данные для кухни успешно добавлены");
+    } else {
+      await db.update(kitchenPageTable)
+        .set({ data: initialKitchenPageData })
+        .where(eq(kitchenPageTable.id, existing[0].id));
+      console.log("✅ Данные для кухни успешно обновлены");
+    }
+  } catch (error) {
+    console.error("❌ Ошибка при добавлении данных для кухни:", error);
+  }
+}
+
+async function seedAboutPage() {
+  try {
+    const existing = await db.select().from(aboutPageTable);
+    
+    if (existing.length === 0) {
+      await db.insert(aboutPageTable).values({
+        data: initialAboutPageData,
+      });
+      console.log("✅ Данные для страницы О компании успешно добавлены");
+    } else {
+      await db
+        .update(aboutPageTable)
+        .set({ data: initialAboutPageData })
+        .where(eq(aboutPageTable.id, existing[0].id));
+      console.log("✅ Данные для страницы О компании успешно обновлены");
+    }
+  } catch (error) {
+    console.error("❌ Ошибка при добавлении данных для страницы О компании:", error);
+  }
+}
+
 async function seed() {
   console.log("🚀 Начинаем заполнение базы данных...")
   await seedCollections()
@@ -344,6 +483,10 @@ async function seed() {
   console.log("✅ База данных успешно заполнена seedCollectionDetails")
   await seedBathroomPage();
   console.log("✅ База данных успешно заполнена seedBathroomPage");
+  await seedKitchenPage();
+  console.log("✅ База данных успешно заполнена seedKitchenPage");
+  await seedAboutPage();
+  console.log("✅ База данных успешно заполнена seedAboutPage");
   process.exit(0)
 }
 
