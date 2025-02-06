@@ -14,7 +14,7 @@ function CollectionCard({ item }: { item: CollectionItem }) {
         {item.image ? (
           <Image 
             src={item.image} 
-            alt={item.title || 'Изображение коллекции'} // Добавлено значение по умолчанию для alt
+            alt={item.title || 'Изображение коллекции'}
             width={526} 
             height={526} 
             className="object-contain" 
@@ -32,7 +32,7 @@ function CollectionCard({ item }: { item: CollectionItem }) {
         </div>
         <div className="xl:pt-0 pt-10">
           <Link 
-            href={`/collections/collection-detail/${item.title ? item.title.toLowerCase() : 'untitled'}`} 
+            href={`/collections/collection-detail/${item.id}`}
             className="text-desc border-b border-black"
           >
             Посмотреть
@@ -53,9 +53,9 @@ export default function Collections() {
       try {
         setIsLoading(true)
         const response = await fetch('/api/collections')
-        if (!response.ok) throw new Error('Ошибка загрузки данных') // Обработка ошибок
+        if (!response.ok) throw new Error('Ошибка загрузки данных')
         const data = await response.json()
-        console.log("Загруженные коллекции:", data) // Лог для отладки
+        console.log("Загруженные коллекции:", data)
         if (Array.isArray(data)) {
           setCollections(data)
         } else {

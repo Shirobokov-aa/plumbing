@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { CollectionItem, CollectionDetailItem } from "../../contexts/SectionsContext"
 import { useRouter } from "next/navigation"
+import SectionEditor from "@/components/admin/collection-detail/SectionEditor"
 
 export default function AddCollectionAdmin() {
   const { collections, collectionDetails, updateCollections, updateCollectionDetails } = useSections()
@@ -158,7 +159,26 @@ export default function AddCollectionAdmin() {
               }
             />
           </div>
-          {/* Добавьте поля для ввода sections, sections2, sections3 и sections4 */}
+          <SectionEditor
+            sectionType="sections"
+            sections={newCollectionDetail.sections}
+            onChange={(newSections) => handleDetailChange("sections", newSections)}
+          />
+          <SectionEditor
+            sectionType="sections2"
+            sections={newCollectionDetail.sections2}
+            onChange={(newSections) => handleDetailChange("sections2", newSections)}
+          />
+          <SectionEditor
+            sectionType="sections3"
+            sections={newCollectionDetail.sections3}
+            onChange={(newSections) => handleDetailChange("sections3", newSections)}
+          />
+          <SectionEditor
+            sectionType="sections4"
+            sections={newCollectionDetail.sections4}
+            onChange={(newSections) => handleDetailChange("sections4", newSections)}
+          />
         </CardContent>
       </Card>
       <div className="flex justify-center">

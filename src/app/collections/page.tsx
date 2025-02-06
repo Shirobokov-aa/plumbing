@@ -32,7 +32,7 @@ function CollectionCard({ item }: { item: CollectionItem }) {
         </div>
         <div className="xl:pt-0 pt-10">
           <Link
-            href={`/collections/collection-detail/${item.title ? item.title.toLowerCase() : "untitled"}`}
+            href={`/collections/collection-detail/${item.id}`}
             className="text-desc border-b border-black"
           >
             Посмотреть

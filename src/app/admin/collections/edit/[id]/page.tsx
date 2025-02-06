@@ -1,178 +1,196 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { use } from "react"
+import { useRouter } from "next/navigation"
 import { useSections } from "@/app/admin/contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { CollectionItem, CollectionDetailItem } from "@/app/admin/contexts/SectionsContext"
+import SectionEditor from "@/components/admin/collection-detail/SectionEditor"
 
-export default function EditCollectionPage() {
-  const params = useParams()
-  const id = params?.id ? Number(params.id) : null
+interface CollectionDetail {
+  name: string;
+  banner: {
+    title: string;
+    description: string;
+    image: string;
+    link?: { text: string; url: string };
+  };
+  sections: any[];
+  sections2: any[];
+  sections3: any[];
+  sections4: any[];
+}
+
+export default function EditCollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { collections, collectionDetails, updateCollections, updateCollectionDetails } = useSections()
-  const [collection, setCollection] = useState<CollectionItem | null>(null)
-  const [collectionDetail, setCollectionDetail] = useState<CollectionDetailItem | null>(null)
+  const { collections, collectionDetails, updateCollectionDetail } = useSections()
+  const [collectionDetail, setCollectionDetail] = useState<CollectionDetail | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  
+  const resolvedParams = use(params)
 
   useEffect(() => {
-    if (id !== null) {
-      const foundCollection = collections.find((c) => c.id === id)
-      const foundCollectionDetail = collectionDetails.find((c) => c.id === id)
-      if (foundCollection) {
-        setCollection(foundCollection)
-      }
-      if (foundCollectionDetail) {
-        setCollectionDetail(foundCollectionDetail)
-      }
-      if (!foundCollection && !foundCollectionDetail) {
-        console.error("Коллекция не найдена")
-        router.push("/admin/collections")
-      }
+    const foundCollectionDetail = collectionDetails.find(
+      (detail) => detail.id === parseInt(resolvedParams.id)
+    )
+
+    if (foundCollectionDetail) {
+      setCollectionDetail(foundCollectionDetail)
+      setIsLoading(false)
+    } else {
+      console.error("Коллекция не найдена")
+      setIsLoading(false)
     }
-  }, [id, collections, collectionDetails, router])
+  }, [resolvedParams.id, collections, collectionDetails])
+
+  if (isLoading) {
+    return <div>Загрузка...</div>
+  }
+
+  if (!collectionDetail) {
+    return <div>Коллекция не найдена</div>
+  }
+
+  const handleBannerChange = (field: string, value: string) => {
+    setCollectionDetail((prev) => ({
+      ...prev!,
+      banner: {
+        ...prev!.banner,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleLinkChange = (field: string, value: string) => {
+    setCollectionDetail((prev) => ({
+      ...prev!,
+      banner: {
+        ...prev!.banner,
+        link: {
+          text: prev?.banner?.link?.text || "",
+          url: prev?.banner?.link?.url || "",
+          [field]: value,
+        },
+      },
+    }))
+  }
+
+  const handleDetailChange = (sectionType: string, newSections: any[]) => {
+    setCollectionDetail((prev) => ({
+      ...prev!,
+      [sectionType]: newSections,
+    }))
+  }
 
   const handleSave = async () => {
-    if (collection && collectionDetail) {
-      try {
-        const updatedCollections = collections.map((c) => 
-          c.id === collection.id ? collection : c
-        );
-        const updatedCollectionDetails = collectionDetails.map((c) =>
-          c.id === collectionDetail.id ? collectionDetail : c
-        );
-
-        await Promise.all([
-          updateCollections(updatedCollections, true),
-          updateCollectionDetails(updatedCollectionDetails, true),
-        ]);
-
-        router.push("/admin/collections");
-      } catch (error) {
-        console.error("Ошибка при обновлении коллекции:", error);
-      }
+    try {
+      if (!collectionDetail) return;
+      
+      await updateCollectionDetail(parseInt(resolvedParams.id), collectionDetail);
+      router.push('/admin/collections');
+    } catch (error) {
+      console.error('Error saving collection:', error);
+      // Добавьте обработку ошибки, например, показ уведомления
     }
   };
 
-  const handleChange = (field: keyof CollectionItem, value: string) => {
-    setCollection((prev) => {
-      if (!prev) return prev
-      return { ...prev, [field]: value }
-    })
-  }
-
-  const handleDetailChange = (field: keyof CollectionDetailItem, value: any) => {
-    setCollectionDetail((prev) => {
-      if (!prev) return prev
-      return { ...prev, [field]: value }
-    })
-  }
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setCollection((prev) => {
-          if (!prev) return prev
-          return { ...prev, image: reader.result as string }
-        })
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  if (!collection || !collectionDetail) {
-    return <div className="text-center py-10">Загрузка...</div>
-  }
-
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Редактирование коллекции: {collection.title}</h1>
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Редактирование коллекции</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <div className="space-y-6 p-6">
+      <h1 className="text-3xl font-bold">Редактирование коллекции {collectionDetail.name}</h1>
+
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <h2 className="text-2xl font-bold mb-4">Баннер</h2>
+        <div className="space-y-4">
           <div>
-            <Label htmlFor="title">Заголовок</Label>
-            <Input id="title" value={collection.title} onChange={(e) => handleChange("title", e.target.value)} />
+            <Label>Заголовок</Label>
+            <Input
+              value={collectionDetail.banner.title}
+              onChange={(e) => handleBannerChange("title", e.target.value)}
+            />
           </div>
           <div>
-            <Label htmlFor="desc">Описание</Label>
-            <Textarea id="desc" value={collection.desc} onChange={(e) => handleChange("desc", e.target.value)} />
+            <Label>Описание</Label>
+            <Textarea
+              value={collectionDetail.banner.description}
+              onChange={(e) => handleBannerChange("description", e.target.value)}
+            />
           </div>
           <div>
-            <Label htmlFor="link">Ссылка</Label>
-            <Input id="link" value={collection.link} onChange={(e) => handleChange("link", e.target.value)} />
-          </div>
-          <div>
-            <Label htmlFor="flexDirection">Направление flex</Label>
-            <Select
-              onValueChange={(value) => handleChange("flexDirection", value as "xl:flex-row" | "xl:flex-row-reverse")}
-              defaultValue={collection.flexDirection}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Выберите направление" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="xl:flex-row">Слева направо</SelectItem>
-                <SelectItem value="xl:flex-row-reverse">Справа налево</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Изображение</Label>
-            <div className="space-y-2">
+            <Label>Изображение баннера</Label>
+            {collectionDetail.banner.image && (
               <Image
+                src={collectionDetail.banner.image}
+                alt="Banner"
                 width={300}
-                height={300}
-                src={collection.image || "/placeholder.svg"}
-                alt={collection.title}
-                className="w-full h-40 object-contain"
+                height={150}
+                className="mt-2"
               />
-              <Input type="file" accept="image/*" onChange={handleImageUpload} />
-            </div>
-          </div>
-          {collectionDetail && (
-            <>
-              <div>
-                <Label htmlFor="detailName">Название (детально)</Label>
-                <Input
-                  id="detailName"
-                  value={collectionDetail.name}
-                  onChange={(e) => handleDetailChange("name", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="bannerTitle">Заголовок баннера</Label>
-                <Input
-                  id="bannerTitle"
-                  value={collectionDetail.banner ? collectionDetail.banner.title : ""} // Проверка на наличие banner
-                  onChange={(e) => handleDetailChange("banner", { ...collectionDetail.banner, title: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="bannerDescription">Описание баннера</Label>
-                <Textarea
-                  id="bannerDescription"
-                  value={collectionDetail.banner ? collectionDetail.banner.description : ""} // Проверка на наличие banner
-                  onChange={(e) =>
-                    handleDetailChange("banner", { ...collectionDetail.banner, description: e.target.value })
+            )}
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  const reader = new FileReader()
+                  reader.onloadend = () => {
+                    handleBannerChange("image", reader.result as string)
                   }
-                />
-              </div>
-              {/* Добавьте поля для редактирования sections, sections2, sections3 и sections4 */}
-            </>
-          )}
-        </CardContent>
-      </Card>
-      <div className="flex justify-center">
+                  reader.readAsDataURL(file)
+                }
+              }}
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label>Текст ссылки</Label>
+            <Input
+              value={collectionDetail.banner.link?.text}
+              onChange={(e) => handleLinkChange("text", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>URL ссылки</Label>
+            <Input
+              value={collectionDetail.banner.link?.url}
+              onChange={(e) => handleLinkChange("url", e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <SectionEditor
+        sectionType="sections"
+        sections={collectionDetail.sections}
+        onChange={(newSections) => handleDetailChange("sections", newSections)}
+      />
+
+      <SectionEditor
+        sectionType="sections2"
+        sections={collectionDetail.sections2}
+        onChange={(newSections) => handleDetailChange("sections2", newSections)}
+      />
+
+      <SectionEditor
+        sectionType="sections3"
+        sections={collectionDetail.sections3}
+        onChange={(newSections) => handleDetailChange("sections3", newSections)}
+      />
+
+      <SectionEditor
+        sectionType="sections4"
+        sections={collectionDetail.sections4}
+        onChange={(newSections) => handleDetailChange("sections4", newSections)}
+      />
+
+      <div className="flex justify-end gap-4">
+        <Button variant="outline" onClick={() => router.push("/admin/collections")}>
+          Отмена
+        </Button>
         <Button onClick={handleSave}>Сохранить изменения</Button>
       </div>
     </div>

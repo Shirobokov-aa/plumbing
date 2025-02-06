@@ -187,6 +187,7 @@ interface SectionsContextType {
   fetchCollections: () => Promise<void>;
   fetchCollectionDetails: () => Promise<void>;
   fetchAboutPage: () => Promise<void>;
+  updateCollectionDetail: (id: number, data: any) => Promise<void>;
 }
 
 export const SectionsContext = createContext<SectionsContextType | null>(null)
@@ -353,26 +354,26 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const fetchCollectionDetails = useCallback(async () => {
+  const fetchCollectionDetails = async () => {
     try {
-      console.log("🔄 Начинаем загрузку детальной информации о коллекциях...")
-      const response = await fetch("/api/collectionDetails")
+      // Проверяем, есть ли уже загруженные данные
+      if (collectionDetails.length > 0) {
+        return collectionDetails
+      }
+
+      const response = await fetch('/api/collectionDetails')
       if (!response.ok) {
-        console.error(`Ошибка при загрузке данных: ${response.status} - ${response.statusText}`);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error('Failed to fetch collection details')
       }
       const data = await response.json()
-      console.log("📦 Загруженные данные детальной информации о коллекциях:", data)
-      if (Array.isArray(data)) {
-        setCollectionDetails(data)
-      } else {
-        console.error("Неожиданный формат данных:", data)
-        setCollectionDetails([])
-      }
+      console.log("�� Загруженные данные детальной информации о коллекциях:", data)
+      setCollectionDetails(data)
+      return data
     } catch (error) {
-      console.error("Ошибка при загрузке детальной информации о коллекциях:", error)
+      console.error('Error fetching collection details:', error)
+      throw error
     }
-  }, [])
+  }
 
   useEffect(() => {
     fetchCollectionDetails()
@@ -655,6 +656,39 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const updateCollectionDetail = async (id: number, data: any) => {
+    try {
+      const response = await fetch(`/api/collections/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update collection detail');
+      }
+
+      const result = await response.json();
+      
+      // Обновляем состояние после успешного обновления
+      setCollectionDetails((prev) => {
+        const newDetails = [...prev];
+        const index = newDetails.findIndex((detail) => detail.id === id);
+        if (index !== -1) {
+          newDetails[index] = { ...newDetails[index], ...data };
+        }
+        return newDetails;
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error updating collection detail:', error);
+      throw error;
+    }
+  };
+
   return (
     <SectionsContext.Provider
       value={{
@@ -673,6 +707,7 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         fetchCollections,
         fetchCollectionDetails,
         fetchAboutPage,
+        updateCollectionDetail,
       }}
     >
       {alert && <Alert message={alert.message} type={alert.type} />}

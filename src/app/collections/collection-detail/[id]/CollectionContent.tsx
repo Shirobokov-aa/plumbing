@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -40,6 +41,7 @@ interface BannerProps {
 }
 
 interface CollectionDetails {
+  id: number;
   name: string;
   banner: BannerProps;
   link?: { text: string; url: string };
@@ -50,17 +52,44 @@ interface CollectionDetails {
 }
 
 interface CollectionContentProps {
-  params: Promise<{ name: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export function CollectionContent({ params }: CollectionContentProps) {
   const resolvedParams = use(params);
-  const { collectionDetails } = useSections();
+  const { collectionDetails, fetchCollectionDetails } = useSections();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const collection = collectionDetails.find((c) => c.name.toLowerCase() === resolvedParams.name.toLowerCase());
+  const loadCollection = useCallback(async () => {
+    try {
+      if (collectionDetails.length === 0) {
+        await fetchCollectionDetails();
+      }
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Ошибка при загрузке коллекции:", err);
+      setError("Не удалось загрузить коллекцию");
+      setIsLoading(false);
+    }
+  }, [fetchCollectionDetails, collectionDetails.length]);
+
+  useEffect(() => {
+    loadCollection();
+  }, [loadCollection]);
+
+  if (isLoading) {
+    return <div>Загрузка...</div>;
+  }
+
+  if (error) {
+    return <div>Ошибка: {error}</div>;
+  }
+
+  const collection = collectionDetails.find((c) => c.id === parseInt(resolvedParams.id));
 
   if (!collection) {
-    return <div>Collection not found</div>;
+    return <div>Коллекция не найдена</div>;
   }
 
   return (
@@ -82,7 +111,7 @@ export function CollectionContent({ params }: CollectionContentProps) {
                 <Slash />
               </BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/collections/collection-detail/${resolvedParams.name.toLowerCase()}`}>
+                <BreadcrumbLink href={`/collections/collection-detail/${resolvedParams.id}`}>
                   {collection.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
