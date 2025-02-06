@@ -300,12 +300,11 @@ async function seedSections() {
     if (existing.length === 0) {
       await db.insert(sectionsTable).values({
         id: 1,
-        key: "main",
         data: initialSections,
       })
       console.log("✅ Секции успешно добавлены")
     } else {
-      await db.update(sectionsTable).set({ data: initialSections }).where(eq(sectionsTable.key, "main"))
+      await db.update(sectionsTable).set({ data: initialSections }).where(eq(sectionsTable.id, existing[0].id))
       console.log("✅ Секции успешно обновлены")
     }
   } catch (error) {

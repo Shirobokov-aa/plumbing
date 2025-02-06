@@ -74,15 +74,9 @@ export default function Main() {
   // };
 
   const { sections } = useSections();
-  console.log("Main component sections:", sections); // Проверяем данные в компоненте
-
-  if (!sections) {
-    console.log("Sections is null/undefined"); // Проверяем условие загрузки
-    return <div>Загрузка...</div>;
-  }
-
+  
   const imagesForCollections = useMemo(() => {
-    if (!sections['section-4']?.images_block) {
+    if (!sections || !sections['section-4']?.images_block) {
       return [];
     }
     return sections['section-4'].images_block.map((item) => ({
@@ -93,12 +87,19 @@ export default function Main() {
     }));
   }, [sections]);
 
-  // Проверка на загрузку данных
+  // Проверка загрузки данных
   if (!sections || Object.keys(sections).length === 0) {
-    return <div className="min-h-screen">Загрузка...</div>;
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
   }
 
-  console.log('Данные секций:', sections); // Добавим лог для отладки
+  // Проверяем наличие необходимых секций
+  const requiredSections = ['section-1', 'section-2', 'section-3', 'section-4', 'section-5'];
+  const missingSections = requiredSections.filter(section => !sections[section]);
+
+  if (missingSections.length > 0) {
+    console.log("Отсутствующие секции:", missingSections);
+    return <div className="min-h-screen flex items-center justify-center">Загрузка данных секций...</div>;
+  }
 
   return (
     <div className="min-h-screen">
@@ -150,26 +151,22 @@ export default function Main() {
           </div>
         </section>
       )}
-      <section>
-        <div className="lg:block hidden max-w-1440 mx-auto lg:px-24 px-5 pt-24">
-          <div className="relative w-full xl:h-[780px]">
-            <Image
-              src={sections['section-2']?.images?.[0] || "/img/fallback-image.png"}
-              alt=""
-              width={1240}
-              height={780}
-              className="object-contain"
-            />
-            <Link href={sections['section-2']?.link?.url || "#"} className="">
-              <div className="absolute top-24 left-0 lg:py-9 py-7 lg:px-[150px] px-24 bg-[#1E1E1E] text-white">
-                <h2 className="lg:text-xl font-light border-b border-b-white">
-                  {sections['section-2']?.link?.name}
-                </h2>
-              </div>
-            </Link>
+      {sections['section-2'] && (
+        <section>
+          <div className="max-w-1440 mx-auto lg:px-24 px-5">
+            <div>
+              <Image
+                src={sections['section-2'].images?.[0] || "/img/fallback-image.png"}
+                alt="Banner"
+                width={1392}
+                height={526}
+                priority
+                className="object-contain w-auto h-auto"
+              />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
       <section>
         <div className="max-w-1440 mx-auto lg:px-24 px-5 pt-24">
           <div className="flex xl:flex-row flex-col-reverse xl:gap-24 gap-5">

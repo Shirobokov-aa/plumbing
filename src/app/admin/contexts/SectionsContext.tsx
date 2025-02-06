@@ -3,6 +3,8 @@
 import type React from "react";
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { Alert } from "@/components/ui/alert"
+import { db } from '@/db';
+import { sectionsTable } from '@/db/schema';
 // import type { BathroomPage } from "../types"
 
 
@@ -109,6 +111,7 @@ export interface CollectionItem {
 export interface CollectionDetailItem {
   id: number;
   name: string;
+  link?: string;
   banner: {
     title: string;
     description: string;
@@ -118,21 +121,35 @@ export interface CollectionDetailItem {
     title: string;
     description: string;
     image: string;
+    link?: { text: string; url: string };
+    images?: Array<{ src: string; alt: string }>;
   }>;
   sections2: Array<{
     title: string;
     description: string;
     image: string;
+    link?: { text: string; url: string };
+    images?: Array<{ src: string; alt: string }>;
+    titleDesc?: string;
+    descriptionDesc?: string;
   }>;
   sections3: Array<{
     title: string;
     description: string;
     image: string;
+    link?: { text: string; url: string };
+    images?: Array<{ src: string; alt: string }>;
+    titleDesc?: string;
+    descriptionDesc?: string;
   }>;
   sections4: Array<{
     title: string;
     description: string;
     image: string;
+    link?: { text: string; url: string };
+    images?: Array<{ src: string; alt: string }>;
+    titleDesc?: string;
+    descriptionDesc?: string;
   }>;
 }
 
@@ -159,20 +176,25 @@ interface SectionsContextType {
   fetchCollectionDetails: () => Promise<void>;
 }
 
-const SectionsContext = createContext<SectionsContextType | null>(null)
+export const SectionsContext = createContext<SectionsContextType | null>(null)
 
 export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [sections, setSections] = useState<SectionsMainPage>({});
   const [collections, setCollections] = useState<CollectionItem[]>([])
   const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([])
   const [alert, setAlert] = useState<AlertType | null>(null);
 
-  const fetchSections = useCallback(async () => {
+  const loadSections = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch("/api/sections");
+      console.log("Запуск загрузки секций");
+      const response = await fetch('/api/sections');
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const data = await response.json();
       console.log("Загруженные секции:", data);
       setSections(data);
@@ -182,22 +204,24 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         message: 'Ошибка при загрузке данных',
         type: 'error'
       });
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    console.log("Запуск загрузки секций");
-    fetchSections();
-  }, [fetchSections]);
+  };
 
   const updateSection = async (sectionName: string, data: any) => {
     try {
+      setIsLoading(true);
       const response = await fetch("/api/sections", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sectionName, data }),
+        body: JSON.stringify({ 
+          sectionName, 
+          data,
+          timestamp: Date.now()
+        }),
       });
 
       if (!response.ok) {
@@ -205,21 +229,28 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       const result = await response.json();
-      console.log("Обновленные данные:", result);
-      setSections(result.data);
-      setAlert({
-        message: 'Секция успешно обновлена',
-        type: 'success'
-      });
+      
+      if (result.data) {
+        setSections(result.data);
+        setAlert({
+          message: 'Секция успешно обновлена',
+          type: 'success'
+        });
+      }
     } catch (error) {
       console.error("Ошибка при обновлении секции:", error);
       setAlert({
         message: 'Ошибка при обновлении секции',
         type: 'error'
       });
-      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadSections();
+  }, []);
 
   const fetchCollections = useCallback(async () => {
     try {
