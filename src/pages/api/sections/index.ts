@@ -6,26 +6,17 @@ import { eq } from "drizzle-orm"
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     try {
-      console.log("GET /api/sections - Начало запроса");
-      
       const sections = await db.select().from(sectionsTable);
-      console.log("GET /api/sections - Получены сырые данные:", sections);
+      console.log("API response data:", sections);
       
-      if (sections.length === 0) {
-        console.log("GET /api/sections - Данные не найдены");
+      if (!sections.length) {
         return res.status(200).json({});
       }
 
-      const data = sections[0].data;
-      console.log("GET /api/sections - Подготовленные данные:", data);
-      
-      res.status(200).json(data);
+      return res.status(200).json(sections[0].data);
     } catch (error) {
-      console.error("GET /api/sections - Ошибка:", error);
-      res.status(500).json({ 
-        error: "Failed to fetch sections",
-        details: error instanceof Error ? error.message : String(error)
-      });
+      console.error("API Error:", error);
+      return res.status(500).json({ error: String(error) });
     }
   } else if (req.method === "POST") {
     try {
