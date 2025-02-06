@@ -44,8 +44,8 @@ export default function Header({ defaultTextColor = "text-white", activeTextColo
   {
     name: "Коллекции",
     subcategories: collectionDetails.map((collection) => ({
-      name: collection.name,
-      href: `/collections/collection-detail/${collection.name.toLowerCase()}`,
+      name: collection.name || "Unnamed Collection",
+      href: `/collections/collection-detail/${collection.name ? collection.name.toLowerCase() : "unnamed-collection"}`,
     })),
     images: ["/img/item11.png", "", ""],
   },

@@ -10,10 +10,12 @@ import { useSections } from "../../contexts/SectionsContext"
 import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { CollectionItem } from "../../contexts/SectionsContext"
+import type { CollectionItem, CollectionDetailItem } from "../../contexts/SectionsContext"
+import { useRouter } from "next/navigation"
 
 export default function AddCollectionAdmin() {
-  const { collections, updateCollections } = useSections()
+  const { collections, collectionDetails, updateCollections, updateCollectionDetails } = useSections()
+  const router = useRouter()
   const [newCollection, setNewCollection] = useState<Omit<CollectionItem, "id">>({
     title: "",
     desc: "",
@@ -22,11 +24,34 @@ export default function AddCollectionAdmin() {
     flexDirection: "xl:flex-row",
   })
 
-  const handleSave = () => {
-    const updatedCollections = [...collections, { ...newCollection, id: collections.length + 1 }]
-    updateCollections(updatedCollections)
-    console.log("Новая коллекция добавлена:", newCollection)
-    // Здесь можно добавить логику для очистки формы или перенаправления пользователя
+  const [newCollectionDetail, setNewCollectionDetail] = useState<Omit<CollectionDetailItem, "id">>({
+    name: "",
+    banner: {
+      title: "",
+      description: "",
+      image: "",
+    },
+    sections: [],
+    sections2: [],
+    sections3: [],
+    sections4: [],
+  })
+
+  const handleSave = async () => {
+    try {
+      const newId = collections.length + 1
+      const updatedCollections = [...collections, { ...newCollection, id: newId }]
+      const updatedCollectionDetails = [...collectionDetails, { ...newCollectionDetail, id: newId }]
+      await Promise.all([
+        updateCollections(updatedCollections, false),
+        updateCollectionDetails(updatedCollectionDetails, false),
+      ])
+      console.log("Новая коллекция добавлена:", newCollection)
+      console.log("Новая детальная информация о коллекции добавлена:", newCollectionDetail)
+      router.push("/admin/collections")
+    } catch (error) {
+      console.error("Ошибка при добавлении коллекции:", error)
+    }
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +70,13 @@ export default function AddCollectionAdmin() {
 
   const handleChange = (field: keyof Omit<CollectionItem, "id">, value: string) => {
     setNewCollection((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleDetailChange = (field: keyof Omit<CollectionDetailItem, "id">, value: any) => {
+    setNewCollectionDetail((prev) => ({
       ...prev,
       [field]: value,
     }))
@@ -100,6 +132,33 @@ export default function AddCollectionAdmin() {
               <Input type="file" accept="image/*" onChange={handleImageUpload} />
             </div>
           </div>
+          <div>
+            <Label htmlFor="detailName">Название (детально)</Label>
+            <Input
+              id="detailName"
+              value={newCollectionDetail.name}
+              onChange={(e) => handleDetailChange("name", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="bannerTitle">Заголовок баннера</Label>
+            <Input
+              id="bannerTitle"
+              value={newCollectionDetail.banner.title}
+              onChange={(e) => handleDetailChange("banner", { ...newCollectionDetail.banner, title: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="bannerDescription">Описание баннера</Label>
+            <Textarea
+              id="bannerDescription"
+              value={newCollectionDetail.banner.description}
+              onChange={(e) =>
+                handleDetailChange("banner", { ...newCollectionDetail.banner, description: e.target.value })
+              }
+            />
+          </div>
+          {/* Добавьте поля для ввода sections, sections2, sections3 и sections4 */}
         </CardContent>
       </Card>
       <div className="flex justify-center">

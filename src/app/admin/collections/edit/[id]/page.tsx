@@ -1,207 +1,178 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useSections } from "@/app/admin/contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
-import type { CollectionDetail } from "@/app/admin/contexts/SectionsContext"
-
-type SectionKeys = "sections" | "sections2"
-type ObjectKeys = keyof CollectionDetail
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { CollectionItem, CollectionDetailItem } from "@/app/admin/contexts/SectionsContext"
 
 export default function EditCollectionPage() {
-  const { id } = useParams()
-  const { collectionDetails, updateCollectionDetail } = useSections()
-  const [collection, setCollection] = useState<CollectionDetail | undefined>(
-    collectionDetails.find((c) => c.id === Number(id)),
-  )
+  const params = useParams()
+  const id = params?.id ? Number(params.id) : null
+  const router = useRouter()
+  const { collections, collectionDetails, updateCollections, updateCollectionDetails } = useSections()
+  const [collection, setCollection] = useState<CollectionItem | null>(null)
+  const [collectionDetail, setCollectionDetail] = useState<CollectionDetailItem | null>(null)
 
   useEffect(() => {
-    const foundCollection = collectionDetails.find((c) => c.id === Number(id))
-    setCollection(foundCollection)
-  }, [collectionDetails, id])
+    if (id !== null) {
+      const foundCollection = collections.find((c) => c.id === id)
+      const foundCollectionDetail = collectionDetails.find((c) => c.id === id)
+      if (foundCollection) {
+        setCollection(foundCollection)
+      }
+      if (foundCollectionDetail) {
+        setCollectionDetail(foundCollectionDetail)
+      }
+      if (!foundCollection && !foundCollectionDetail) {
+        console.error("Коллекция не найдена")
+        router.push("/admin/collections")
+      }
+    }
+  }, [id, collections, collectionDetails, router])
 
-  if (!collection) {
-    return <div>Collection not found</div>
-  }
-
-  const handleSave = () => {
-    if (collection) {
-      updateCollectionDetail(collection.id, collection)
+  const handleSave = async () => {
+    if (collection && collectionDetail) {
+      try {
+        const updatedCollections = collections.map((c) => (c.id === collection.id ? collection : c))
+        const updatedCollectionDetails = collectionDetails.map((c) =>
+          c.id === collectionDetail.id ? collectionDetail : c,
+        )
+        await Promise.all([
+          updateCollections(updatedCollections, true),
+          updateCollectionDetails(updatedCollectionDetails, true),
+        ])
+        console.log("Коллекция обновлена:", collection)
+        console.log("Детальная информация о коллекции обновлена:", collectionDetail)
+        router.push("/admin/collections")
+      } catch (error) {
+        console.error("Ошибка при обновлении коллекции:", error)
+      }
     }
   }
 
-  const handleChange = (section: ObjectKeys, field: string, value: string | object) => {
+  const handleChange = (field: keyof CollectionItem, value: string) => {
     setCollection((prev) => {
       if (!prev) return prev
-      if (section === "banner") {
-        return {
-          ...prev,
-          banner: {
-            ...prev.banner,
-            [field]: value,
-          },
-        }
-      }
-      if (typeof prev[section] === "object" && prev[section] !== null) {
-        return {
-          ...prev,
-          [section]: {
-            ...prev[section],
-            [field]: value,
-          },
-        }
-      }
-      return prev
+      return { ...prev, [field]: value }
     })
   }
 
-  const handleImageUpload = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    section: keyof CollectionDetail,
-    index: number,
-  ) => {
+  const handleDetailChange = (field: keyof CollectionDetailItem, value: any) => {
+    setCollectionDetail((prev) => {
+      if (!prev) return prev
+      return { ...prev, [field]: value }
+    })
+  }
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
         setCollection((prev) => {
           if (!prev) return prev
-          if (section === "banner") {
-            return {
-              ...prev,
-              banner: {
-                ...prev.banner,
-                image: reader.result as string,
-              },
-            }
-          } else if (section in prev && Array.isArray(prev[section])) {
-            const newSection = [...prev[section as SectionKeys]]
-            if (newSection[index] && "images" in newSection[index]) {
-              newSection[index] = {
-                ...newSection[index],
-                images: [...(newSection[index].images || []), { src: reader.result as string, alt: "" }],
-              }
-            }
-            return {
-              ...prev,
-              [section]: newSection,
-            }
-          }
-          return prev
+          return { ...prev, image: reader.result as string }
         })
       }
       reader.readAsDataURL(file)
     }
   }
 
+  if (!collection || !collectionDetail) {
+    return <div className="text-center py-10">Загрузка...</div>
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Edit Collection: {collection.name}</h1>
-
-      {/* Banner Section */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Banner</h2>
-        <Input
-          value={collection.banner.title}
-          onChange={(e) => handleChange("banner", "title", e.target.value)}
-          placeholder="Banner Title"
-        />
-        <Textarea
-          value={collection.banner.description}
-          onChange={(e) => handleChange("banner", "description", e.target.value)}
-          placeholder="Banner Description"
-        />
-        <Input
-          value={collection.banner.link.text}
-          onChange={(e) => handleChange("banner", "link", { ...collection.banner.link, text: e.target.value })}
-          placeholder="Banner Link Text"
-        />
-        <Input
-          value={collection.banner.link.url}
-          onChange={(e) => handleChange("banner", "link", { ...collection.banner.link, url: e.target.value })}
-          placeholder="Banner Link URL"
-        />
-        <div>
-          <Label>Banner Image</Label>
-          <Image src={collection.banner.image || "/placeholder.svg"} alt="Banner" width={200} height={100} />
-          <Input type="file" onChange={(e) => handleImageUpload(e, "banner", 0)} accept="image/*" />
-        </div>
-      </div>
-
-      {/* Sections */}
-      {(["sections", "sections2", "sections3", "sections4"] as const).map((sectionType) => (
-        <div key={sectionType} className="space-y-4">
-          <h2 className="text-2xl font-semibold">{sectionType.charAt(0).toUpperCase() + sectionType.slice(1)}</h2>
-          {collection[sectionType].map((section, index) => (
-            <div key={index} className="border p-4 rounded">
-              <Input
-                value={section.title}
-                onChange={(e) => {
-                  const newSections = [...collection[sectionType]]
-                  newSections[index] = { ...newSections[index], title: e.target.value }
-                  setCollection({ ...collection, [sectionType]: newSections })
-                }}
-                placeholder="Section Title"
+      <h1 className="text-3xl font-bold">Редактирование коллекции: {collection.title}</h1>
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Редактирование коллекции</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="title">Заголовок</Label>
+            <Input id="title" value={collection.title} onChange={(e) => handleChange("title", e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="desc">Описание</Label>
+            <Textarea id="desc" value={collection.desc} onChange={(e) => handleChange("desc", e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="link">Ссылка</Label>
+            <Input id="link" value={collection.link} onChange={(e) => handleChange("link", e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="flexDirection">Направление flex</Label>
+            <Select
+              onValueChange={(value) => handleChange("flexDirection", value as "xl:flex-row" | "xl:flex-row-reverse")}
+              defaultValue={collection.flexDirection}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Выберите направление" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="xl:flex-row">Слева направо</SelectItem>
+                <SelectItem value="xl:flex-row-reverse">Справа налево</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Изображение</Label>
+            <div className="space-y-2">
+              <Image
+                width={300}
+                height={300}
+                src={collection.image || "/placeholder.svg"}
+                alt={collection.title}
+                className="w-full h-40 object-contain"
               />
-              <Textarea
-                value={section.description}
-                onChange={(e) => {
-                  const newSections = [...collection[sectionType]]
-                  newSections[index] = { ...newSections[index], description: e.target.value }
-                  setCollection({ ...collection, [sectionType]: newSections })
-                }}
-                placeholder="Section Description"
-              />
-              {"link" in section && section.link && (
-                <>
-                  <Input
-                    value={section.link.text}
-                    onChange={(e) => {
-                      const newSections = [...collection[sectionType]]
-                      newSections[index] = { ...newSections[index], link: { ...section.link, text: e.target.value } }
-                      setCollection({ ...collection, [sectionType]: newSections })
-                    }}
-                    placeholder="Link Text"
-                  />
-                  <Input
-                    value={section.link.url}
-                    onChange={(e) => {
-                      const newSections = [...collection[sectionType]]
-                      newSections[index] = { ...newSections[index], link: { ...section.link, url: e.target.value } }
-                      setCollection({ ...collection, [sectionType]: newSections })
-                    }}
-                    placeholder="Link URL"
-                  />
-                </>
-              )}
-              {section.images &&
-                section.images.map((image, imageIndex) => (
-                  <div key={imageIndex}>
-                    <Label>Image {imageIndex + 1}</Label>
-                    <Image src={image.src || "/placeholder.svg"} alt={image.alt} width={100} height={100} />
-                    <Input type="file" onChange={(e) => handleImageUpload(e, sectionType, index)} accept="image/*" />
-                    <Input
-                      value={image.alt}
-                      onChange={(e) => {
-                        const newSections = [...collection[sectionType]]
-                        newSections[index].images[imageIndex] = { ...image, alt: e.target.value }
-                        setCollection({ ...collection, [sectionType]: newSections })
-                      }}
-                      placeholder="Image Alt Text"
-                    />
-                  </div>
-                ))}
+              <Input type="file" accept="image/*" onChange={handleImageUpload} />
             </div>
-          ))}
-        </div>
-      ))}
-
-      <Button onClick={handleSave}>Save Changes</Button>
+          </div>
+          {collectionDetail && (
+            <>
+              <div>
+                <Label htmlFor="detailName">Название (детально)</Label>
+                <Input
+                  id="detailName"
+                  value={collectionDetail.name}
+                  onChange={(e) => handleDetailChange("name", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="bannerTitle">Заголовок баннера</Label>
+                <Input
+                  id="bannerTitle"
+                  value={collectionDetail.banner.title}
+                  onChange={(e) => handleDetailChange("banner", { ...collectionDetail.banner, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="bannerDescription">Описание баннера</Label>
+                <Textarea
+                  id="bannerDescription"
+                  value={collectionDetail.banner.description}
+                  onChange={(e) =>
+                    handleDetailChange("banner", { ...collectionDetail.banner, description: e.target.value })
+                  }
+                />
+              </div>
+              {/* Добавьте поля для редактирования sections, sections2, sections3 и sections4 */}
+            </>
+          )}
+        </CardContent>
+      </Card>
+      <div className="flex justify-center">
+        <Button onClick={handleSave}>Сохранить изменения</Button>
+      </div>
     </div>
   )
 }

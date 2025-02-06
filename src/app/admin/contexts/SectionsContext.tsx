@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { Alert } from "@/components/ui/alert"
 
 export interface ImageBlockData {
@@ -101,7 +101,8 @@ export interface CollectionItem {
   desc: string;
   image: string;
   link: string;
-  flexDirection: "xl:flex-row" | "xl:flex-row-reverse";
+  // flexDirection: "xl:flex-row" | "xl:flex-row-reverse";
+  flexDirection: string
 }
 
 export interface CollectionDetail {
@@ -141,22 +142,55 @@ export interface CollectionDetail {
   }[];
 }
 
+export interface CollectionDetailItem {
+  id: number
+  name: string
+  banner: {
+    title: string
+    description: string
+    image: string
+  }
+  sections: Array<{
+    title: string
+    description: string
+    image: string
+  }>
+  sections2: Array<{
+    title: string
+    description: string
+    image: string
+  }>
+  sections3: Array<{
+    title: string
+    description: string
+    image: string
+  }>
+  sections4: Array<{
+    title: string
+    description: string
+    image: string
+  }>
+}
+
 interface SectionsContextType {
   sections: SectionsMainPage;
   collections: CollectionItem[];
-  collectionDetails: CollectionDetail[];
+  collectionDetails: CollectionDetailItem[]
   bathroomPage: BathroomPage; // Добавляем новое свойство
   kitchenPage: KitchenPage; // Добавляем новое свойство
   aboutPage: AboutPage; // Добавляем новое свойство
   updateSection: (sectionKey: string, newData: Section) => void;
-  updateCollections: (newCollections: CollectionItem[]) => void;
-  updateCollectionDetail: (id: number, newData: CollectionDetail) => void;
+  updateCollections: (newCollections: CollectionItem[], isEdit?: boolean) => Promise<void>
+  updateCollectionDetails: (newCollectionDetails: CollectionDetailItem[], isEdit?: boolean) => Promise<void>
   updateBathroomPage: (newData: BathroomPage) => void; // Новая функция обновления
   updateKitchenPage: (newData: KitchenPage) => void; // Новая функция обновления
   updateAboutPage: (newData: AboutPage) => void; // Новая функция обновления
+
+  fetchCollections: () => Promise<void>
+  fetchCollectionDetails: () => Promise<void>
 }
 
-const SectionsContext = createContext<SectionsContextType | undefined>(undefined);
+const SectionsContext = createContext<SectionsContextType | null>(null)
 
 export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sections, setSections] = useState<SectionsMainPage>({
@@ -191,179 +225,256 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const [collections, setCollections] = useState<CollectionItem[]>([]);
+  const [collections, setCollections] = useState<CollectionItem[]>([])
+  const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([])
 
-  useEffect(() => {
-    const fetchCollections = async () => {
-      try {
-        console.log('Начинаем загрузку коллекций...')
-        const response = await fetch('/api/collections');
-        if (!response.ok) {
-          const errorData = await response.text();
-          console.error('Ответ сервера:', errorData);
-          throw new Error(`Ошибка загрузки данных: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log("Данные коллекций:", data);
-        
-        if (Array.isArray(data)) {
-          setCollections(data);
-        } else if (data && Array.isArray(data.data)) {
-          setCollections(data.data);
-        } else {
-          console.error("Неожиданный формат данных:", data);
-          setCollections([]);
-        }
-      } catch (error) {
-        console.error('Ошибка при загрузке коллекций:', error);
-        // Здесь вы можете добавить обработку ошибки, например, установить состояние ошибки
-        // setError(error instanceof Error ? error.message : 'Произошла неизвестная ошибка');
+  const fetchCollections = useCallback(async () => {
+    try {
+      console.log("🔄 Начинаем загрузку коллекций...")
+      const response = await fetch("/api/collections")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-    };
-  
-    fetchCollections()
+      const data = await response.json()
+      console.log("📦 Загруженные данные коллекций:", data)
+      if (Array.isArray(data)) {
+        setCollections(data)
+      } else if (data && Array.isArray(data.data)) {
+        setCollections(data.data)
+      } else {
+        console.error("Неожиданный формат данных:", data)
+        setCollections([])
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке коллекций:", error)
+    }
   }, [])
 
-  const [collectionDetails, setCollectionDetails] = useState<CollectionDetail[]>([
-    {
-      id: 1,
-      name: "sono",
-      banner: {
-        image: "/img/banner01.png",
-        title: "Заголовок баннера",
-        description: "Описание баннера",
-        link: { text: "Какой-то текст", url: "/" },
-      },
-      sections: [
-        {
-          title: "Смесители для раковины",
-          description:
-            "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-          link: { text: "Посмотреть", url: "/" },
-          images: [
-            { src: "/img/item01.png", alt: "Смеситель SONO 1" },
-            { src: "/img/item02.png", alt: "Смеситель SONO 2" },
-            { src: "/img/item02.png", alt: "Смеситель SONO 2" },
-          ],
-        },
-        {
-          title: "Смесители для ванной и душа",
-          description:
-            "Step into the world of Aesthetics & Co. through our portfolio of past projects. Each project...",
-          link: { text: "Посмотреть", url: "/" },
-          images: [
-            {
-              src: "/img/item-era.png",
-              alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-            },
-            {
-              src: "/img/item-era.png",
-              alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-            },
-            {
-              src: "/img/item-era.png",
-              alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-            },
-          ],
-        },
-      ],
-      sections2: [
-        {
-          title: "Смесители для раковины",
-          description:
-            "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-          link: { text: "Посмотреть", url: "/" },
-          images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
-          titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
-          descriptionDesc: "A Chic Urban Apartment Trasformation",
-        },
-      ],
-      sections3: [
-        {
-          title: "Унитазы",
-          description:
-            "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
-          link: { text: "Посмотреть", url: "/" },
-          images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
-        },
-      ],
-      sections4: [
-        {
-          title: "Унитазы",
-          description:
-            "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
-          // link: { text: "Посмотреть", url: "/" },
-          images: [
-            { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-            { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-            { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-          ],
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "era",
-      banner: {
-        image: "/img/banner01.png",
-        title: "Заголовок баннера",
-        description: "Описание баннера",
-        link: { text: "Какой-то текст", url: "/" },
-      },
-      sections: [
-        {
-          title: "Смесители для раковины",
-          description:
-            "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-          link: { text: "Посмотреть", url: "/" },
-          images: [],
-        },
-        {
-          title: "Смесители для ванной и душа",
-          description:
-            "Step into the world of Aesthetics & Co. through our portfolio of past projects. Each project...",
-          link: { text: "Посмотреть", url: "/" },
-          images: [
-            {
-              src: "/img/fallback-image.png",
-              alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-              desc: "A Chic Urban Apartment Trasformation",
-            },
-          ],
-        },
-      ],
-      sections2: [
-        {
-          title: "Смесители для раковины",
-          description:
-            "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-          link: { text: "Посмотреть", url: "/" },
-          images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
-          titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
-          descriptionDesc: "A Chic Urban Apartment Trasformation",
-        },
-      ],
-      sections3: [
-        {
-          title: "Смесители для раковины",
-          description:
-            "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-          link: { text: "Посмотреть", url: "/" },
-          images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
-        },
-      ],
-      sections4: [
-        {
-          title: "Унитазы",
-          description:
-            "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
-          // link: { text: "Посмотреть", url: "/" },
-          images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
-        },
-      ],
-    },
-  ]);
+  useEffect(() => {
+    fetchCollections()
+  }, [fetchCollections])
+
+  const updateCollections = async (newCollections: CollectionItem[]) => {
+    try {
+      const response = await fetch("/api/collections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: newCollections }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Ответ сервера:", errorText)
+        throw new Error(`Ошибка обновления: ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log("Результат обновления:", result)
+
+      if (result.success) {
+        setCollections(result.data)
+      } else {
+        throw new Error("Обновление не удалось")
+      }
+    } catch (error) {
+      console.error("Ошибка при обновлении коллекций:", error)
+      throw error
+    }
+  }
+
+
+  const updateCollectionDetails = async (newCollectionDetails: CollectionDetailItem[], isEdit = false) => {
+    try {
+      console.log("Отправка данных детальной информации о коллекциях на сервер:", newCollectionDetails)
+      const response = await fetch("/api/collectionDetails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: newCollectionDetails, isEdit }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Ответ сервера:", errorText)
+        throw new Error(`Ошибка обновления: ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log("Результат обновления детальной информации о коллекциях:", result)
+
+      if (result.success) {
+        setCollectionDetails(result.data)
+      } else {
+        throw new Error("Обновление не удалось")
+      }
+    } catch (error) {
+      console.error("Ошибка при обновлении детальной информации о коллекциях:", error)
+      throw error
+    }
+  }
+
+  const fetchCollectionDetails = useCallback(async () => {
+    try {
+      console.log("🔄 Начинаем загрузку детальной информации о коллекциях...")
+      const response = await fetch("/api/collectionDetails")
+      if (!response.ok) {
+        console.error(`Ошибка при загрузке данных: ${response.status} - ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json()
+      console.log("📦 Загруженные данные детальной информации о коллекциях:", data)
+      if (Array.isArray(data)) {
+        setCollectionDetails(data)
+      } else {
+        console.error("Неожиданный формат данных:", data)
+        setCollectionDetails([])
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке детальной информации о коллекциях:", error)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchCollectionDetails()
+  }, [fetchCollectionDetails])
+  // const [collectionDetails, setCollectionDetails] = useState<CollectionDetail[]>([
+  //   {
+  //     id: 1,
+  //     name: "sono",
+  //     banner: {
+  //       image: "/img/banner01.png",
+  //       title: "Заголовок баннера",
+  //       description: "Описание баннера",
+  //       link: { text: "Какой-то текст", url: "/" },
+  //     },
+  //     sections: [
+  //       {
+  //         title: "Смесители для раковины",
+  //         description:
+  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [
+  //           { src: "/img/item01.png", alt: "Смеситель SONO 1" },
+  //           { src: "/img/item02.png", alt: "Смеситель SONO 2" },
+  //           { src: "/img/item02.png", alt: "Смеситель SONO 2" },
+  //         ],
+  //       },
+  //       {
+  //         title: "Смесители для ванной и душа",
+  //         description:
+  //           "Step into the world of Aesthetics & Co. through our portfolio of past projects. Each project...",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [
+  //           {
+  //             src: "/img/item-era.png",
+  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
+  //           },
+  //           {
+  //             src: "/img/item-era.png",
+  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
+  //           },
+  //           {
+  //             src: "/img/item-era.png",
+  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //     sections2: [
+  //       {
+  //         title: "Смесители для раковины",
+  //         description:
+  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
+  //         titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
+  //         descriptionDesc: "A Chic Urban Apartment Trasformation",
+  //       },
+  //     ],
+  //     sections3: [
+  //       {
+  //         title: "Унитазы",
+  //         description:
+  //           "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
+  //       },
+  //     ],
+  //     sections4: [
+  //       {
+  //         title: "Унитазы",
+  //         description:
+  //           "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
+  //         // link: { text: "Посмотреть", url: "/" },
+  //         images: [
+  //           { src: "/img/item10.png", alt: "Смеситель SONO 1" },
+  //           { src: "/img/item10.png", alt: "Смеситель SONO 1" },
+  //           { src: "/img/item10.png", alt: "Смеситель SONO 1" },
+  //         ],
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "era",
+  //     banner: {
+  //       image: "/img/banner01.png",
+  //       title: "Заголовок баннера",
+  //       description: "Описание баннера",
+  //       link: { text: "Какой-то текст", url: "/" },
+  //     },
+  //     sections: [
+  //       {
+  //         title: "Смесители для раковины",
+  //         description:
+  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [],
+  //       },
+  //       {
+  //         title: "Смесители для ванной и душа",
+  //         description:
+  //           "Step into the world of Aesthetics & Co. through our portfolio of past projects. Each project...",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [
+  //           {
+  //             src: "/img/fallback-image.png",
+  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
+  //             desc: "A Chic Urban Apartment Trasformation",
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //     sections2: [
+  //       {
+  //         title: "Смесители для раковины",
+  //         description:
+  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
+  //         titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
+  //         descriptionDesc: "A Chic Urban Apartment Trasformation",
+  //       },
+  //     ],
+  //     sections3: [
+  //       {
+  //         title: "Смесители для раковины",
+  //         description:
+  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
+  //         link: { text: "Посмотреть", url: "/" },
+  //         images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
+  //       },
+  //     ],
+  //     sections4: [
+  //       {
+  //         title: "Унитазы",
+  //         description:
+  //           "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
+  //         // link: { text: "Посмотреть", url: "/" },
+  //         images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
+  //       },
+  //     ],
+  //   },
+  // ]);
 
   const [bathroomPage, setBathroomPage] = useState<BathroomPage>({
     banner: {
@@ -540,41 +651,66 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }
 
-  const updateCollections = async (newCollections: CollectionItem[]) => {
-    try {
-      const response = await fetch('/api/collections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: newCollections })
-      });
+  // const updateCollections = async (newCollections: CollectionItem[]) => {
+  //   try {
+  //     const response = await fetch('/api/collections', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ data: newCollections })
+  //     });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Ответ сервера:", errorText);
-        throw new Error(`Ошибка обновления: ${errorText}`);
-      }
+  //     if (!response.ok) {
+  //       const errorText = await response.text();
+  //       console.error("Ответ сервера:", errorText);
+  //       throw new Error(`Ошибка обновления: ${errorText}`);
+  //     }
 
-      const result = await response.json();
-      console.log("Результат обновления:", result);
+  //     const result = await response.json();
+  //     console.log("Результат обновления:", result);
 
-      // Обновляем состояние коллекций
-      setCollections(result.data); // Используем данные из ответа API
-      setAlert({
-        message: 'Коллекции успешно обновлены',
-        type: 'success'
-      });
-    } catch (error) {
-      console.error('Ошибка при обновлении коллекций:', error);
-      setAlert({
-        message: `Ошибка при обновлении коллекций: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
-        type: 'error'
-      });
-    }
-  };
+  //     // Обновляем состояние коллекций
+  //     setCollections(result.data); // Используем данные из ответа API
+  //     setAlert({
+  //       message: 'Коллекции успешно обновлены',
+  //       type: 'success'
+  //     });
+  //   } catch (error) {
+  //     console.error('Ошибка при обновлении коллекций:', error);
+  //     setAlert({
+  //       message: `Ошибка при обновлении коллекций: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
+  //       type: 'error'
+  //     });
+  //   }
+  // };
 
-  const updateCollectionDetail = (id: number, newData: CollectionDetail) => {
-    setCollectionDetails((prevDetails) => prevDetails.map((detail) => (detail.id === id ? newData : detail)));
-  };
+  // const updateCollections = async (newCollections: CollectionItem[]) => {
+  //   try {
+  //     const response = await fetch("/api/collections", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ data: newCollections }),
+  //     })
+
+  //     if (!response.ok) {
+  //       const errorText = await response.text()
+  //       console.error("Ответ сервера:", errorText)
+  //       throw new Error(`Ошибка обновления: ${errorText}`)
+  //     }
+
+  //     const result = await response.json()
+  //     console.log("Результат обновления:", result)
+
+  //     // Обновляем состояние коллекций
+  //     setCollections(result.data)
+  //   } catch (error) {
+  //     console.error("Ошибка при обновлении коллекций:", error)
+  //     throw error // Перебрасываем ошибку для обработки в компоненте
+  //   }
+  // }
+
+  // const updateCollectionDetail = (id: number, newData: CollectionDetail) => {
+  //   setCollectionDetails((prevDetails) => prevDetails.map((detail) => (detail.id === id ? newData : detail)));
+  // };
 
   // Функция обновления данных страницы ванной
   const updateBathroomPage = (newData: BathroomPage) => {
@@ -599,10 +735,12 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         aboutPage, // Добавляем новое свойство
         updateSection,
         updateCollections,
-        updateCollectionDetail,
+        updateCollectionDetails,
         updateBathroomPage, // Добавляем новую функцию обновления
         updateKitchenPage, // Добавляем новую функцию обновления
         updateAboutPage, // Добавляем новую функцию обновления
+        fetchCollections,
+        fetchCollectionDetails,
       }}
     >
       {alert && <Alert message={alert.message} type={alert.type} />}
@@ -614,7 +752,7 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useSections = () => {
   const context = useContext(SectionsContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useSections must be used within a SectionsProvider");
   }
   return context;
