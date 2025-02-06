@@ -12,7 +12,12 @@ interface Section2Data {
     name: string;
     url: string;
   };
-  images: string[];
+  images: Array<{
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  }>;
 }
 
 export default function MainSection2Page() {
@@ -27,13 +32,13 @@ export default function MainSection2Page() {
   })
 
   useEffect(() => {
-    if (sections?.section2) {
+    if (sections?.['section-2']) {
       setSectionData({
         link: {
-          name: sections.section2.link?.name || "",
-          url: sections.section2.link?.url || ""
+          name: sections['section-2'].link?.name || "",
+          url: sections['section-2'].link?.url || ""
         },
-        images: sections.section2.images || []
+        images: sections['section-2'].images || []
       })
     }
     setIsLoading(false)
@@ -41,7 +46,7 @@ export default function MainSection2Page() {
 
   const handleSave = async () => {
     try {
-      await updateSection("section2", sectionData)
+      await updateSection("section-2", sectionData)
     } catch (error) {
       console.error("Error saving section:", error)
     }
@@ -54,7 +59,12 @@ export default function MainSection2Page() {
       reader.onloadend = () => {
         setSectionData(prev => ({
           ...prev,
-          images: [reader.result as string]
+          images: [{
+            src: reader.result as string,
+            alt: file.name || 'Uploaded image',
+            width: 800,
+            height: 600
+          }]
         }))
       }
       reader.readAsDataURL(file)
@@ -95,13 +105,13 @@ export default function MainSection2Page() {
           </div>
           <div>
             <label className="block mb-2">Изображение</label>
-            {sectionData.images[0] && (
+            {sectionData.images?.[0]?.src && (
               <div className="mb-4">
                 <Image
-                  src={sectionData.images[0]}
-                  alt="Banner"
-                  width={200}
-                  height={200}
+                  src={sectionData.images[0].src}
+                  alt={sectionData.images[0].alt || 'Section image'}
+                  width={sectionData.images[0].width || 800}
+                  height={sectionData.images[0].height || 600}
                   className="object-cover"
                 />
               </div>

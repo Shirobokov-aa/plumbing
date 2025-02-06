@@ -7,6 +7,7 @@ export const collectionsTable = pgTable("collections", {
 
 export const sectionsTable = pgTable("sections", {
   id: serial("id").primaryKey(),
+  key: text('key'),
   data: jsonb("data").notNull(),
 })
 

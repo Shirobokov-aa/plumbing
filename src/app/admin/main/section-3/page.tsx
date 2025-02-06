@@ -15,7 +15,12 @@ interface Section3Data {
     name: string;
     url: string;
   };
-  images: string[];
+  images: Array<{
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  }>;
 }
 
 export default function MainSection3Page() {
@@ -32,15 +37,25 @@ export default function MainSection3Page() {
   })
 
   useEffect(() => {
-    if (sections?.section3) {
+    if (sections?.['section-3']) {
       setSectionData({
-        title: sections.section3.title || "",
-        description: sections.section3.description || "",
+        title: sections['section-3'].title || "",
+        description: sections['section-3'].description || "",
         link: {
-          name: sections.section3.link?.name || "",
-          url: sections.section3.link?.url || ""
+          name: sections['section-3'].link?.name || "",
+          url: sections['section-3'].link?.url || ""
         },
-        images: sections.section3.images || []
+        images: sections['section-3'].images?.map(img => {
+          if (typeof img === 'string') {
+            return {
+              src: img,
+              alt: 'Section image',
+              width: 800,
+              height: 600
+            }
+          }
+          return img
+        }) || []
       })
     }
     setIsLoading(false)
@@ -48,7 +63,7 @@ export default function MainSection3Page() {
 
   const handleSave = async () => {
     try {
-      await updateSection("section3", sectionData)
+      await updateSection("section-3", sectionData)
     } catch (error) {
       console.error("Error saving section:", error)
     }
@@ -61,7 +76,12 @@ export default function MainSection3Page() {
       reader.onloadend = () => {
         setSectionData(prev => ({
           ...prev,
-          images: [reader.result as string]
+          images: [{
+            src: reader.result as string,
+            alt: file.name || 'Uploaded image',
+            width: 800,
+            height: 600
+          }]
         }))
       }
       reader.readAsDataURL(file)
@@ -122,13 +142,13 @@ export default function MainSection3Page() {
           </div>
           <div>
             <label className="block mb-2">Изображение</label>
-            {sectionData.images[0] && (
+            {sectionData.images?.[0]?.src && (
               <div className="mb-4">
                 <Image
-                  src={sectionData.images[0]}
-                  alt="Section image"
-                  width={200}
-                  height={200}
+                  src={sectionData.images[0].src}
+                  alt={sectionData.images[0].alt || 'Section image'}
+                  width={sectionData.images[0].width || 800}
+                  height={sectionData.images[0].height || 600}
                   className="object-cover"
                 />
               </div>

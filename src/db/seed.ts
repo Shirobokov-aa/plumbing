@@ -32,7 +32,7 @@ const initialCollections = [
 ]
 
 const initialSections = {
-  "section1": {
+  "section-1": {
     title: "Привет мир 123",
     description: "Какое то описание из объекта",
     link: { name: "Посмотреть", url: "/123123" },
@@ -42,17 +42,17 @@ const initialSections = {
     ],
     images: ["/img/banner-little.png"],
   },
-  "section2": {
+  "section-2": {
     images: ["/img/banner01.png"],
     link: { name: "Какая-то навигация", url: "/" },
   },
-  "section3": {
+  "section-3": {
     title: "ERA",
     description: "Коллекция ERA воплощает гармонию современного дизайна и классических традиций...",
     link: { name: "Посмотреть", url: "/" },
     images: ["/img/item-era.png"],
   },
-  "section4": {
+  "section-4": {
     title: "Коллекции",
     description: "Описание для коллекций",
     link: { name: "Смотреть", url: "/" },
@@ -63,7 +63,7 @@ const initialSections = {
       { src: "/img/item01.png", alt: "Image 1", desc: "ERA", url: "/era" },
     ],
   },
-  "section5": {
+  "section-5": {
     title: "Какой-то заголовок",
     description: "Описание для этого блока",
     link: { name: "Посмотреть", url: "/" },

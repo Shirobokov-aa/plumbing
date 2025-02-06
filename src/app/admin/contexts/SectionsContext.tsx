@@ -13,14 +13,26 @@ export interface ImageBlockData {
   alt: string;
   desc?: string;
   url?: string;
+  width?: number;
+  height?: number;
 }
 
 interface Section {
   title?: string;
   description?: string;
-  link?: { name: string; url: string }; // url теперь всегда строка
-  images_block?: ImageBlockData[];
-  images?: string[];
+  link?: { name: string; url: string };
+  images_block?: Array<{
+    src: string;
+    alt: string;
+    desc?: string;
+    url?: string;
+  }>;
+  images?: Array<{
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  }>;
 }
 
 interface SectionsMainPage {
@@ -185,10 +197,9 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([])
   const [alert, setAlert] = useState<AlertType | null>(null);
 
-  const loadSections = async () => {
-    setIsLoading(true);
+  const loadSections = useCallback(async () => {
     try {
-      console.log("Запуск загрузки секций");
+      console.log("Загрузка секций...");
       const response = await fetch('/api/sections');
       
       if (!response.ok) {
@@ -196,61 +207,68 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       
       const data = await response.json();
-      console.log("Загруженные секции:", data);
-      setSections(data);
+      console.log("Получены данные секций:", data);
+      
+      if (data && typeof data === 'object') {
+        setSections(data);
+        console.log("Секции успешно обновлены");
+      }
     } catch (error) {
-      console.error("Ошибка при загрузке секций:", error);
-      setAlert({
-        message: 'Ошибка при загрузке данных',
-        type: 'error'
-      });
+      console.error("Ошибка загрузки секций:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSections();
+  }, [loadSections]);
 
   const updateSection = async (sectionName: string, data: any) => {
     try {
-      setIsLoading(true);
-      const response = await fetch("/api/sections", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          sectionName, 
-          data,
-          timestamp: Date.now()
-        }),
+      console.log('Отправляем данные на сервер:', { sectionName, data });
+      
+      const response = await fetch('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sectionName, data }),
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Ошибка от сервера:', errorData);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
+      const updatedData = await response.json();
+      console.log('Получены обновленные данные:', updatedData);
       
-      if (result.data) {
-        setSections(result.data);
-        setAlert({
-          message: 'Секция успешно обновлена',
-          type: 'success'
-        });
-      }
+      // Обновляем состояние новыми данными
+      setSections(updatedData);
+      
+      // Добавим небольшую задержку перед перезагрузкой
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Принудительно очищаем кэш перед загрузкой
+      const response2 = await fetch('/api/sections', { 
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      const freshData = await response2.json();
+      setSections(freshData);
+
+      setAlert({
+        message: 'Секция успешно обновлена',
+        type: 'success'
+      });
     } catch (error) {
-      console.error("Ошибка при обновлении секции:", error);
+      console.error('Ошибка при обновлении секции:', error);
       setAlert({
         message: 'Ошибка при обновлении секции',
         type: 'error'
       });
-    } finally {
-      setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadSections();
-  }, []);
 
   const fetchCollections = useCallback(async () => {
     try {

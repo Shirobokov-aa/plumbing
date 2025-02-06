@@ -38,15 +38,15 @@ export default function MainSection5Page() {
   })
 
   useEffect(() => {
-    if (sections?.section5) {
+    if (sections?.['section-5']) {
       setSectionData({
-        title: sections.section5.title || "",
-        description: sections.section5.description || "",
+        title: sections['section-5'].title || "",
+        description: sections['section-5'].description || "",
         link: {
-          name: sections.section5.link?.name || "",
-          url: sections.section5.link?.url || ""
+          name: sections['section-5'].link?.name || "",
+          url: sections['section-5'].link?.url || ""
         },
-        images_block: sections.section5.images_block?.map(img => ({
+        images_block: sections['section-5'].images_block?.map(img => ({
           ...img,
           desc: img.desc || ''
         })) || []
@@ -57,7 +57,7 @@ export default function MainSection5Page() {
 
   const handleSave = async () => {
     try {
-      await updateSection("section5", sectionData)
+      await updateSection("section-5", sectionData)
     } catch (error) {
       console.error("Error saving section:", error)
     }

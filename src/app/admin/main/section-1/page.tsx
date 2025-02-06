@@ -35,18 +35,17 @@ export default function MainSection1Page() {
   })
 
   useEffect(() => {
-    if (sections?.section1) {
+    if (sections?.['section-1']) {
       setSectionData({
-        title: sections.section1.title || "",
-        description: sections.section1.description || "",
+        title: sections['section-1'].title || "",
+        description: sections['section-1'].description || "",
         link: {
-          name: sections.section1.link?.name || "",
-          url: sections.section1.link?.url || ""
+          name: sections['section-1'].link?.name || "",
+          url: sections['section-1'].link?.url || ""
         },
-        images: sections.section1.images?.map((img: string | { src: string; alt: string }) => ({
-          src: typeof img === 'string' ? img : img.src,
-          alt: typeof img === 'string' ? '' : img.alt
-        })) || []
+        images: sections['section-1'].images?.map(img => 
+          typeof img === 'string' ? { src: img, alt: 'Image' } : img
+        ) || []
       })
     }
     setIsLoading(false)
@@ -54,7 +53,7 @@ export default function MainSection1Page() {
 
   const handleSave = async () => {
     try {
-      await updateSection("section1", sectionData)
+      await updateSection("section-1", sectionData)
     } catch (error) {
       console.error("Error saving section:", error)
     }
