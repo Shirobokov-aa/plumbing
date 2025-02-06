@@ -1,7 +1,8 @@
 "use client"
 
-import BathroomBanner from "@/components/bathroom/BathroomBanner"
-import BathShower from "@/components/bathroom/BathShower"
+import BathroomBanner from "./BathroomBanner"
+import BathShower from "./BathShower"
+import BathroomCollection from "./BathroomCollection"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,12 +11,12 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Slash } from "lucide-react"
-import { useSections } from "@/app/admin/contexts/SectionsContext"
-import BathroomCollection from "@/components/bathroom/BathroomCollection"
 
-export default function BathroomPage() {
-  const { bathroomPage } = useSections()
+interface BathroomContentProps {
+  initialData: any; // Замените any на правильный тип данных
+}
 
+export default function BathroomContent({ initialData }: BathroomContentProps) {
   return (
     <>
       <section>
@@ -36,14 +37,14 @@ export default function BathroomPage() {
         </div>
       </section>
       <section>
-        <BathroomBanner {...bathroomPage.banner} />
+        <BathroomBanner {...initialData.banner} />
       </section>
-      {bathroomPage.sections.map((section, index) => (
+      {initialData.sections.map((section: any, index: number) => (
         <section key={index}>
           <BathShower {...section} />
         </section>
       ))}
-            {bathroomPage.collections.map((collection, index) => (
+      {initialData.collections.map((collection: any, index: number) => (
         <section key={index}>
           <BathroomCollection {...collection} />
         </section>
@@ -51,4 +52,3 @@ export default function BathroomPage() {
     </>
   )
 }
-

@@ -1,7 +1,7 @@
 // import { db } from "./index"
 // import { collectionsTable, sectionsTable, collectionDetailsTable } from "./schema"
 import { eq } from "drizzle-orm"
-import { collectionDetailsTable, collectionsTable, sectionsTable } from "./schema"
+import { collectionDetailsTable, collectionsTable, sectionsTable, bathroomPageTable } from "./schema"
 import { db } from "."
 
 const initialCollections = [
@@ -32,7 +32,7 @@ const initialCollections = [
 ]
 
 const initialSections = {
-  "section-1": {
+  "section1": {
     title: "Привет мир 123",
     description: "Какое то описание из объекта",
     link: { name: "Посмотреть", url: "/123123" },
@@ -42,17 +42,17 @@ const initialSections = {
     ],
     images: ["/img/banner-little.png"],
   },
-  "section-2": {
+  "section2": {
     images: ["/img/banner01.png"],
     link: { name: "Какая-то навигация", url: "/" },
   },
-  "section-3": {
+  "section3": {
     title: "ERA",
     description: "Коллекция ERA воплощает гармонию современного дизайна и классических традиций...",
     link: { name: "Посмотреть", url: "/" },
     images: ["/img/item-era.png"],
   },
-  "section-4": {
+  "section4": {
     title: "Коллекции",
     description: "Описание для коллекций",
     link: { name: "Смотреть", url: "/" },
@@ -63,7 +63,7 @@ const initialSections = {
       { src: "/img/item01.png", alt: "Image 1", desc: "ERA", url: "/era" },
     ],
   },
-  "section-5": {
+  "section5": {
     title: "Какой-то заголовок",
     description: "Описание для этого блока",
     link: { name: "Посмотреть", url: "/" },
@@ -200,6 +200,80 @@ const initialCollectionDetails = [
   },
 ]
 
+const initialBathroomPageData = {
+  banner: {
+    name: "Ванная",
+    image: "/img/banner01.png",
+    title: "",
+    description: "",
+    link: { text: "Узнать больше", url: "/bathroom" },
+  },
+  sections: [
+    {
+      title: "Смесители для ванной и душа",
+      description: "Удобство, стиль и надежность в каждом решении",
+      link: { text: "Смотреть", url: "/bathroom/faucets" },
+      images: [
+        { src: "", alt: "Смеситель для ванной 1" },
+        { src: "", alt: "Смеситель для ванной 2" },
+        { src: "", alt: "Смеситель для ванной 3" },
+      ],
+    },
+    {
+      title: "Смесители для раковины",
+      description: "Удобство, стиль и надежность в каждом решении",
+      link: { text: "Смотреть", url: "/bathroom/faucets" },
+      images: [
+        { src: "", alt: "Смеситель для ванной 1" },
+        { src: "", alt: "Смеситель для ванной 2" },
+        { src: "", alt: "Смеситель для ванной 3" },
+      ],
+    },
+    {
+      title: "Душевые системы",
+      description: "Удобство, стиль и надежность в каждом решении",
+      link: { text: "Смотреть", url: "/bathroom/faucets" },
+      images: [
+        { src: "", alt: "Смеситель для ванной 1" },
+        { src: "", alt: "Смеситель для ванной 2" },
+        { src: "", alt: "Смеситель для ванной 3" },
+      ],
+    },
+  ],
+  collections: [
+    {
+      title: "Коллекция для ванной",
+      description: "Элегантность и функциональность в каждой детали",
+      link: { text: "Подробнее", url: "/bathroom/collections/1" },
+      images: [
+        { src: "/img/item01.png", alt: "Коллекция для ванной 1" },
+        { src: "/img/item01.png", alt: "Коллекция для ванной 2" },
+        { src: "/img/item01.png", alt: "Коллекция для ванной 3" },
+      ],
+    },
+  ],
+};
+
+async function seedBathroomPage() {
+  try {
+    const existing = await db.select().from(bathroomPageTable);
+
+    if (existing.length === 0) {
+      await db.insert(bathroomPageTable).values({
+        data: initialBathroomPageData, // Убедитесь, что вы передаете данные в правильном формате
+      });
+      console.log("✅ Данные для ванной успешно добавлены");
+    } else {
+      await db.update(bathroomPageTable)
+        .set({ data: initialBathroomPageData })
+        .where(eq(bathroomPageTable.id, existing[0].id));
+      console.log("✅ Данные для ванной успешно обновлены");
+    }
+  } catch (error) {
+    console.error("❌ Ошибка при добавлении данных для ванной:", error);
+  }
+}
+
 async function seedCollections() {
   try {
     const existing = await db.select().from(collectionsTable)
@@ -264,9 +338,13 @@ async function seedCollectionDetails() {
 async function seed() {
   console.log("🚀 Начинаем заполнение базы данных...")
   await seedCollections()
+  console.log("✅ База данных успешно заполнена seedCollections")
   await seedSections()
+  console.log("✅ База данных успешно заполнена seedSections")
   await seedCollectionDetails()
-  console.log("✅ База данных успешно заполнена")
+  console.log("✅ База данных успешно заполнена seedCollectionDetails")
+  await seedBathroomPage();
+  console.log("✅ База данных успешно заполнена seedBathroomPage");
   process.exit(0)
 }
 

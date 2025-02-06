@@ -1,20 +1,24 @@
 import { pgTable, text, jsonb, serial } from 'drizzle-orm/pg-core';
 
 export const collectionsTable = pgTable("collections", {
-  id: serial("id").primaryKey().notNull(),
+  id: serial("id").primaryKey(),
   data: jsonb("data").notNull(),
 })
 
 export const sectionsTable = pgTable("sections", {
-  id: serial("id").primaryKey().notNull(),
-  key: text("key").notNull(),
+  id: serial("id").primaryKey(),
   data: jsonb("data").notNull(),
 })
 
 export const collectionDetailsTable = pgTable("collection_details", {
-  id: serial("id").primaryKey().notNull(),
+  id: serial("id").primaryKey(),
   data: jsonb("data").notNull(),
 })
+
+export const bathroomPageTable = pgTable('bathroom_page', {
+  id: serial('id').primaryKey().notNull(),
+  data: jsonb('data').notNull()
+});
 
 // export const sectionsTable = pgTable('sections', {
 //   id: integer('id').primaryKey().notNull(),
@@ -33,10 +37,7 @@ export const collectionDetailsTable = pgTable("collection_details", {
 //   data: jsonb("data").notNull(),
 // })
 
-// export const bathroomPageTable = pgTable('bathroom_page', {
-//   id: integer('id').primaryKey().notNull(),
-//   data: jsonb('data').notNull()
-// });
+
 
 // export const kitchenPageTable = pgTable('kitchen_page', {
 //   id: integer('id').primaryKey().notNull(),

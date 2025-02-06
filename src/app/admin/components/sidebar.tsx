@@ -29,7 +29,7 @@ export function Sidebar() {
         { title: "Добавить коллекцию", href: "/admin/collections/add" },
         // Только для коллекций, которые есть в collectionDetails
         ...collectionDetails.map((collection) => ({
-          title: `Редактировать ${collection.name.toUpperCase()}`,
+          title: `Редактировать ${collection.name ? collection.name.toUpperCase() : "Unnamed Collection"}`, // Проверка на наличие name
           href: `/admin/collections/edit/${collection.id}`,
         })),
       ],

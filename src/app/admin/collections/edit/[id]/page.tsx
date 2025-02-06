@@ -40,22 +40,24 @@ export default function EditCollectionPage() {
   const handleSave = async () => {
     if (collection && collectionDetail) {
       try {
-        const updatedCollections = collections.map((c) => (c.id === collection.id ? collection : c))
+        const updatedCollections = collections.map((c) => 
+          c.id === collection.id ? collection : c
+        );
         const updatedCollectionDetails = collectionDetails.map((c) =>
-          c.id === collectionDetail.id ? collectionDetail : c,
-        )
+          c.id === collectionDetail.id ? collectionDetail : c
+        );
+
         await Promise.all([
           updateCollections(updatedCollections, true),
           updateCollectionDetails(updatedCollectionDetails, true),
-        ])
-        console.log("Коллекция обновлена:", collection)
-        console.log("Детальная информация о коллекции обновлена:", collectionDetail)
-        router.push("/admin/collections")
+        ]);
+
+        router.push("/admin/collections");
       } catch (error) {
-        console.error("Ошибка при обновлении коллекции:", error)
+        console.error("Ошибка при обновлении коллекции:", error);
       }
     }
-  }
+  };
 
   const handleChange = (field: keyof CollectionItem, value: string) => {
     setCollection((prev) => {
@@ -151,7 +153,7 @@ export default function EditCollectionPage() {
                 <Label htmlFor="bannerTitle">Заголовок баннера</Label>
                 <Input
                   id="bannerTitle"
-                  value={collectionDetail.banner.title}
+                  value={collectionDetail.banner ? collectionDetail.banner.title : ""} // Проверка на наличие banner
                   onChange={(e) => handleDetailChange("banner", { ...collectionDetail.banner, title: e.target.value })}
                 />
               </div>
@@ -159,7 +161,7 @@ export default function EditCollectionPage() {
                 <Label htmlFor="bannerDescription">Описание баннера</Label>
                 <Textarea
                   id="bannerDescription"
-                  value={collectionDetail.banner.description}
+                  value={collectionDetail.banner ? collectionDetail.banner.description : ""} // Проверка на наличие banner
                   onChange={(e) =>
                     handleDetailChange("banner", { ...collectionDetail.banner, description: e.target.value })
                   }

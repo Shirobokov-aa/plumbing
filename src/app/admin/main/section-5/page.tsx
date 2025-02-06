@@ -1,25 +1,66 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
+import { useSections } from "../../contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useSections } from "../../contexts/SectionsContext"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
 
-export default function Section5Admin() {
+interface ImageBlockItem {
+  src: string;
+  alt: string;
+  desc: string;
+}
+
+interface Section5Data {
+  title: string;
+  description: string;
+  link: {
+    name: string;
+    url: string;
+  };
+  images_block: ImageBlockItem[];
+}
+
+export default function MainSection5Page() {
   const { sections, updateSection } = useSections()
-  const [sectionData, setSectionData] = useState(sections["section-5"])
+  const [isLoading, setIsLoading] = useState(true)
+  const [sectionData, setSectionData] = useState<Section5Data>({
+    title: "",
+    description: "",
+    link: {
+      name: "",
+      url: ""
+    },
+    images_block: []
+  })
 
   useEffect(() => {
-    setSectionData(sections["section-5"])
+    if (sections?.section5) {
+      setSectionData({
+        title: sections.section5.title || "",
+        description: sections.section5.description || "",
+        link: {
+          name: sections.section5.link?.name || "",
+          url: sections.section5.link?.url || ""
+        },
+        images_block: sections.section5.images_block?.map(img => ({
+          ...img,
+          desc: img.desc || ''
+        })) || []
+      })
+    }
+    setIsLoading(false)
   }, [sections])
 
-  const handleSave = () => {
-    updateSection("section-5", sectionData)
-    console.log("Изменения сохранены:", sectionData)
+  const handleSave = async () => {
+    try {
+      await updateSection("section5", sectionData)
+    } catch (error) {
+      console.error("Error saving section:", error)
+    }
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -27,100 +68,135 @@ export default function Section5Admin() {
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setSectionData((prev) => {
-          const newImagesBlock = [...(prev.images_block || [])]
+        setSectionData(prev => {
+          const newImagesBlock = [...prev.images_block]
           newImagesBlock[index] = {
             ...newImagesBlock[index],
             src: reader.result as string,
+            alt: file.name
           }
-          return { ...prev, images_block: newImagesBlock }
+          return {
+            ...prev,
+            images_block: newImagesBlock
+          }
         })
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const handleImageDataChange = (index: number, field: "alt" | "desc", value: string) => {
-    setSectionData((prev) => {
-      const newImagesBlock = [...(prev.images_block || [])]
-      newImagesBlock[index] = {
-        ...newImagesBlock[index],
-        [field]: value,
-      }
-      return { ...prev, images_block: newImagesBlock }
-    })
+  const addImage = () => {
+    setSectionData(prev => ({
+      ...prev,
+      images_block: [...prev.images_block, { src: "", alt: "", desc: "" }]
+    }))
+  }
+
+  const removeImage = (index: number) => {
+    setSectionData(prev => ({
+      ...prev,
+      images_block: prev.images_block.filter((_, i) => i !== index)
+    }))
+  }
+
+  if (isLoading) {
+    return <div>Загрузка...</div>
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Редактирование Секции 5</h1>
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="title">Заголовок</Label>
-          <Input
-            id="title"
-            value={sectionData.title || ""}
-            onChange={(e) => setSectionData((prev) => ({ ...prev, title: e.target.value }))}
-          />
-        </div>
-        <div>
-          <Label htmlFor="description">Описание</Label>
-          <Textarea
-            id="description"
-            value={sectionData.description || ""}
-            onChange={(e) => setSectionData((prev) => ({ ...prev, description: e.target.value }))}
-          />
-        </div>
-        <div>
-          <Label htmlFor="linkName">Текст ссылки</Label>
-          <Input
-            id="linkName"
-            value={sectionData.link?.name || ""}
-            onChange={(e) => setSectionData(prev => ({
-              ...prev,
-              link: { name: e.target.value, url: prev.link?.url || "" }
-            }))}
-          />
-        </div>
-        <div>
-          <Label htmlFor="linkUrl">URL ссылки</Label>
-          <Input
-            id="linkUrl"
-            value={sectionData.link?.url || ""}
-            onChange={(e) => setSectionData(prev => ({
-              ...prev,
-              link: { name: prev.link?.name || "", url: e.target.value }
-            }))}
-          />
-        </div>
-        <div>
-          <Label>Изображения блока</Label>
-          <div className="grid grid-cols-3 gap-4">
-            {sectionData.images_block?.map((image, index) => (
-              <div key={index} className="space-y-2 border p-4 rounded">
-                <Image
-                  width={300}
-                  height={300}
-                  src={image.src || "/placeholder.svg"}
-                  alt={image.alt}
-                  className="w-full h-40 object-contain"
-                />
-                <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, index)} />
+      <h1 className="text-3xl font-bold">Редактирование секции 5</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Основная информация</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="block mb-2">Заголовок</label>
+            <Input
+              value={sectionData.title}
+              onChange={(e) => setSectionData(prev => ({
+                ...prev,
+                title: e.target.value
+              }))}
+            />
+          </div>
+          <div>
+            <label className="block mb-2">Описание</label>
+            <Textarea
+              value={sectionData.description}
+              onChange={(e) => setSectionData(prev => ({
+                ...prev,
+                description: e.target.value
+              }))}
+            />
+          </div>
+          <div>
+            <label className="block mb-2">Ссылка - текст</label>
+            <Input
+              value={sectionData.link.name}
+              onChange={(e) => setSectionData(prev => ({
+                ...prev,
+                link: { ...prev.link, name: e.target.value }
+              }))}
+            />
+          </div>
+          <div>
+            <label className="block mb-2">Ссылка - URL</label>
+            <Input
+              value={sectionData.link.url}
+              onChange={(e) => setSectionData(prev => ({
+                ...prev,
+                link: { ...prev.link, url: e.target.value }
+              }))}
+            />
+          </div>
+          <div>
+            <label className="block mb-2">Блок изображений</label>
+            <Button type="button" onClick={addImage} className="mb-4">
+              Добавить изображение
+            </Button>
+            {sectionData.images_block.map((image, index) => (
+              <div key={index} className="mb-6 p-4 border rounded">
+                <div className="flex justify-between mb-2">
+                  <h4>Изображение {index + 1}</h4>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => removeImage(index)}
+                  >
+                    Удалить
+                  </Button>
+                </div>
+                {image.src && (
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    width={200}
+                    height={200}
+                    className="object-cover mb-2"
+                  />
+                )}
                 <Input
-                  placeholder="Alt текст"
-                  value={image.alt || ""}
-                  onChange={(e) => handleImageDataChange(index, "alt", e.target.value)}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, index)}
+                  className="mb-2"
                 />
                 <Input
                   placeholder="Описание"
-                  value={image.desc || ""}
-                  onChange={(e) => handleImageDataChange(index, "desc", e.target.value)}
+                  value={image.desc}
+                  onChange={(e) => {
+                    const newImagesBlock = [...sectionData.images_block]
+                    newImagesBlock[index] = { ...image, desc: e.target.value }
+                    setSectionData(prev => ({ ...prev, images_block: newImagesBlock }))
+                  }}
                 />
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
       <Button onClick={handleSave}>Сохранить изменения</Button>
     </div>
   )

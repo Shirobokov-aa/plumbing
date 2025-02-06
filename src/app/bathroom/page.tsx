@@ -1,18 +1,23 @@
-import { Suspense } from "react"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import BathroomContent from "./BathroomContent"
+import BathroomContent from "@/components/bathroom/BathroomContent" // Исправленный импорт
+import { getBathroomPage } from "@/lib/api"
 
-// { params }: { params: Promise<{ name: string }> }
-export default function Bathroom() {
-  return (
-    <div>
-      <Header defaultTextColor="text-black" activeTextColor="text-black" />
-      <Suspense fallback={<div>Loading...</div>}>
-        <BathroomContent />
-      </Suspense>
-      <Footer />
-    </div>
-  )
+async function BathroomPage() {
+  try {
+    const data = await getBathroomPage();
+    
+    return (
+      <div>
+        <Header defaultTextColor="text-black" activeTextColor="text-black" />
+        <BathroomContent initialData={data.data} />
+        <Footer />
+      </div>
+    );
+  } catch (error) {
+    console.error('Error loading bathroom page:', error);
+    return <div>Error loading page</div>;
+  }
 }
 
+export default BathroomPage;

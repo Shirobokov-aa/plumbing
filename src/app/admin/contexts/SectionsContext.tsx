@@ -3,6 +3,8 @@
 import type React from "react";
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { Alert } from "@/components/ui/alert"
+// import type { BathroomPage } from "../types"
+
 
 export interface ImageBlockData {
   src: string;
@@ -101,132 +103,123 @@ export interface CollectionItem {
   desc: string;
   image: string;
   link: string;
-  // flexDirection: "xl:flex-row" | "xl:flex-row-reverse";
-  flexDirection: string
-}
-
-export interface CollectionDetail {
-  id: number;
-  name: string;
-  banner: {
-    image: string;
-    title: string;
-    description: string;
-    link: { text: string; url: string };
-  };
-  sections: {
-    title: string;
-    description: string;
-    link: { text: string; url: string };
-    images: ImageBlockData[];
-  }[];
-  sections2: {
-    title: string;
-    description: string;
-    link: { text: string; url: string };
-    images: ImageBlockData[];
-    titleDesc: string;
-    descriptionDesc: string;
-  }[];
-  sections3: {
-    title: string;
-    description: string;
-    link: { text: string; url: string };
-    images: ImageBlockData[];
-  }[];
-  sections4: {
-    title: string;
-    description: string;
-    // link: { text: string; url: string };
-    images: ImageBlockData[];
-  }[];
+  flexDirection: "xl:flex-row" | "xl:flex-row-reverse";
 }
 
 export interface CollectionDetailItem {
-  id: number
-  name: string
+  id: number;
+  name: string;
   banner: {
-    title: string
-    description: string
-    image: string
-  }
+    title: string;
+    description: string;
+    image: string;
+  };
   sections: Array<{
-    title: string
-    description: string
-    image: string
-  }>
+    title: string;
+    description: string;
+    image: string;
+  }>;
   sections2: Array<{
-    title: string
-    description: string
-    image: string
-  }>
+    title: string;
+    description: string;
+    image: string;
+  }>;
   sections3: Array<{
-    title: string
-    description: string
-    image: string
-  }>
+    title: string;
+    description: string;
+    image: string;
+  }>;
   sections4: Array<{
-    title: string
-    description: string
-    image: string
-  }>
+    title: string;
+    description: string;
+    image: string;
+  }>;
+}
+
+interface AlertType {
+  message: string;
+  type: 'success' | 'error';
 }
 
 interface SectionsContextType {
   sections: SectionsMainPage;
   collections: CollectionItem[];
-  collectionDetails: CollectionDetailItem[]
-  bathroomPage: BathroomPage; // Добавляем новое свойство
-  kitchenPage: KitchenPage; // Добавляем новое свойство
-  aboutPage: AboutPage; // Добавляем новое свойство
-  updateSection: (sectionKey: string, newData: Section) => void;
-  updateCollections: (newCollections: CollectionItem[], isEdit?: boolean) => Promise<void>
-  updateCollectionDetails: (newCollectionDetails: CollectionDetailItem[], isEdit?: boolean) => Promise<void>
-  updateBathroomPage: (newData: BathroomPage) => void; // Новая функция обновления
-  updateKitchenPage: (newData: KitchenPage) => void; // Новая функция обновления
-  updateAboutPage: (newData: AboutPage) => void; // Новая функция обновления
-
-  fetchCollections: () => Promise<void>
-  fetchCollectionDetails: () => Promise<void>
+  collectionDetails: CollectionDetailItem[];
+  bathroomPage: BathroomPage | null
+  kitchenPage: KitchenPage;
+  aboutPage: AboutPage;
+  
+  updateSection: (sectionName: string, data: any) => Promise<void>;
+  updateCollections: (newCollections: CollectionItem[], isEdit?: boolean) => Promise<void>;
+  updateCollectionDetails: (newDetails: CollectionDetailItem[], isEdit?: boolean) => Promise<void>;
+  updateBathroomPage: (newData: BathroomPage) => void;
+  updateKitchenPage: (newData: KitchenPage) => void;
+  updateAboutPage: (newData: AboutPage) => void;
+  fetchCollections: () => Promise<void>;
+  fetchCollectionDetails: () => Promise<void>;
 }
 
 const SectionsContext = createContext<SectionsContextType | null>(null)
 
 export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [sections, setSections] = useState<SectionsMainPage>({
-    "section-1": {
-      title: "",
-      description: "",
-      link: { name: "", url: "" },
-      images_block: [],
-      images: [],
-    },
-    "section-2": {
-      images: [],
-      link: { name: "", url: "" },
-    },
-    "section-3": {
-      title: "",
-      description: "",
-      link: { name: "", url: "" },
-      images: [],
-    },
-    "section-4": {
-      title: "",
-      description: "",
-      link: { name: "", url: "" },
-      images_block: [],
-    },
-    "section-5": {
-      title: "",
-      description: "",
-      link: { name: "", url: "" },
-      images_block: [],
-    },
-  });
-
+  const [sections, setSections] = useState<SectionsMainPage>({});
   const [collections, setCollections] = useState<CollectionItem[]>([])
   const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([])
+  const [alert, setAlert] = useState<AlertType | null>(null);
+
+  const fetchSections = useCallback(async () => {
+    try {
+      const response = await fetch("/api/sections");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Загруженные секции:", data);
+      setSections(data);
+    } catch (error) {
+      console.error("Ошибка при загрузке секций:", error);
+      setAlert({
+        message: 'Ошибка при загрузке данных',
+        type: 'error'
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log("Запуск загрузки секций");
+    fetchSections();
+  }, [fetchSections]);
+
+  const updateSection = async (sectionName: string, data: any) => {
+    try {
+      const response = await fetch("/api/sections", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sectionName, data }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Обновленные данные:", result);
+      setSections(result.data);
+      setAlert({
+        message: 'Секция успешно обновлена',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error("Ошибка при обновлении секции:", error);
+      setAlert({
+        message: 'Ошибка при обновлении секции',
+        type: 'error'
+      });
+      throw error;
+    }
+  };
 
   const fetchCollections = useCallback(async () => {
     try {
@@ -254,63 +247,61 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     fetchCollections()
   }, [fetchCollections])
 
-  const updateCollections = async (newCollections: CollectionItem[]) => {
+  const updateCollections = async (newCollections: CollectionItem[], isEdit = false) => {
     try {
       const response = await fetch("/api/collections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: newCollections }),
-      })
+        body: JSON.stringify({ data: newCollections, isEdit }),
+      });
 
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error("Ответ сервера:", errorText)
-        throw new Error(`Ошибка обновления: ${errorText}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json()
-      console.log("Результат обновления:", result)
-
-      if (result.success) {
-        setCollections(result.data)
-      } else {
-        throw new Error("Обновление не удалось")
-      }
+      const result = await response.json();
+      setCollections(result.data);
+      setAlert({
+        message: 'Коллекции успешно обновлены',
+        type: 'success'
+      });
     } catch (error) {
-      console.error("Ошибка при обновлении коллекций:", error)
-      throw error
+      console.error('Ошибка при обновлении коллекций:', error);
+      setAlert({
+        message: 'Ошибка при обновлении коллекций',
+        type: 'error'
+      });
+      throw error;
     }
-  }
+  };
 
-
-  const updateCollectionDetails = async (newCollectionDetails: CollectionDetailItem[], isEdit = false) => {
+  const updateCollectionDetails = async (newDetails: CollectionDetailItem[], isEdit = false) => {
     try {
-      console.log("Отправка данных детальной информации о коллекциях на сервер:", newCollectionDetails)
       const response = await fetch("/api/collectionDetails", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: newCollectionDetails, isEdit }),
-      })
+        body: JSON.stringify({ data: newDetails, isEdit }),
+      });
 
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error("Ответ сервера:", errorText)
-        throw new Error(`Ошибка обновления: ${errorText}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json()
-      console.log("Результат обновления детальной информации о коллекциях:", result)
-
-      if (result.success) {
-        setCollectionDetails(result.data)
-      } else {
-        throw new Error("Обновление не удалось")
-      }
+      const result = await response.json();
+      setCollectionDetails(result.data);
+      setAlert({
+        message: 'Детали коллекции успешно обновлены',
+        type: 'success'
+      });
     } catch (error) {
-      console.error("Ошибка при обновлении детальной информации о коллекциях:", error)
-      throw error
+      console.error('Ошибка при обновлении деталей коллекции:', error);
+      setAlert({
+        message: 'Ошибка при обновлении деталей коллекции',
+        type: 'error'
+      });
+      throw error;
     }
-  }
+  };
 
   const fetchCollectionDetails = useCallback(async () => {
     try {
@@ -336,145 +327,6 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     fetchCollectionDetails()
   }, [fetchCollectionDetails])
-  // const [collectionDetails, setCollectionDetails] = useState<CollectionDetail[]>([
-  //   {
-  //     id: 1,
-  //     name: "sono",
-  //     banner: {
-  //       image: "/img/banner01.png",
-  //       title: "Заголовок баннера",
-  //       description: "Описание баннера",
-  //       link: { text: "Какой-то текст", url: "/" },
-  //     },
-  //     sections: [
-  //       {
-  //         title: "Смесители для раковины",
-  //         description:
-  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [
-  //           { src: "/img/item01.png", alt: "Смеситель SONO 1" },
-  //           { src: "/img/item02.png", alt: "Смеситель SONO 2" },
-  //           { src: "/img/item02.png", alt: "Смеситель SONO 2" },
-  //         ],
-  //       },
-  //       {
-  //         title: "Смесители для ванной и душа",
-  //         description:
-  //           "Step into the world of Aesthetics & Co. through our portfolio of past projects. Each project...",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [
-  //           {
-  //             src: "/img/item-era.png",
-  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-  //           },
-  //           {
-  //             src: "/img/item-era.png",
-  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-  //           },
-  //           {
-  //             src: "/img/item-era.png",
-  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //     sections2: [
-  //       {
-  //         title: "Смесители для раковины",
-  //         description:
-  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
-  //         titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
-  //         descriptionDesc: "A Chic Urban Apartment Trasformation",
-  //       },
-  //     ],
-  //     sections3: [
-  //       {
-  //         title: "Унитазы",
-  //         description:
-  //           "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
-  //       },
-  //     ],
-  //     sections4: [
-  //       {
-  //         title: "Унитазы",
-  //         description:
-  //           "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
-  //         // link: { text: "Посмотреть", url: "/" },
-  //         images: [
-  //           { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-  //           { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-  //           { src: "/img/item10.png", alt: "Смеситель SONO 1" },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "era",
-  //     banner: {
-  //       image: "/img/banner01.png",
-  //       title: "Заголовок баннера",
-  //       description: "Описание баннера",
-  //       link: { text: "Какой-то текст", url: "/" },
-  //     },
-  //     sections: [
-  //       {
-  //         title: "Смесители для раковины",
-  //         description:
-  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [],
-  //       },
-  //       {
-  //         title: "Смесители для ванной и душа",
-  //         description:
-  //           "Step into the world of Aesthetics & Co. through our portfolio of past projects. Each project...",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [
-  //           {
-  //             src: "/img/fallback-image.png",
-  //             alt: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ И ДУША",
-  //             desc: "A Chic Urban Apartment Trasformation",
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //     sections2: [
-  //       {
-  //         title: "Смесители для раковины",
-  //         description:
-  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
-  //         titleDesc: "СМЕСИТЕЛЬ ДЛЯ ВАННЫ  И  ДУША",
-  //         descriptionDesc: "A Chic Urban Apartment Trasformation",
-  //       },
-  //     ],
-  //     sections3: [
-  //       {
-  //         title: "Смесители для раковины",
-  //         description:
-  //           "Our blog covers a wide range of topics, including design inspiration, practical advice for home improvement recommendations and more.",
-  //         link: { text: "Посмотреть", url: "/" },
-  //         images: [{ src: "/img/item01.png", alt: "Смеситель SONO 1" }],
-  //       },
-  //     ],
-  //     sections4: [
-  //       {
-  //         title: "Унитазы",
-  //         description:
-  //           "Welcome to Aesthetics & Co., where we believe in the power of exceptional design to transform spaces and enhance lives. ",
-  //         // link: { text: "Посмотреть", url: "/" },
-  //         images: [{ src: "/img/item10.png", alt: "Смеситель SONO 1" }],
-  //       },
-  //     ],
-  //   },
-  // ]);
 
   const [bathroomPage, setBathroomPage] = useState<BathroomPage>({
     banner: {
@@ -597,125 +449,56 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     ],
   });
 
-  useEffect(() => {
-    const fetchSections = async () => {
-      try {
-        console.log('🔄 Начинаем загрузку данных...')
-        const response = await fetch('/api/sections')
-        const data = await response.json()
-
-        if (data && data.length > 0 && data[0].data) {
-          console.log('📦 Загруженные данные:', data[0].data)
-          setSections(data[0].data)
-        }
-      } catch (error) {
-        console.error('❌ Ошибка загрузки секций:', error)
-      }
-    }
-
-    fetchSections()
-  }, [])
-
-  const [alert, setAlert] = useState<{ message: string; type: "success" | "error" } | null>(null)
-
-  const updateSection = async (sectionKey: string, newData: Section) => {
+  const updateBathroomPage = async (newData: BathroomPage) => {
     try {
-      // Обновляем в БД
-      const response = await fetch('/api/sections', {
+      const response = await fetch('/api/bathroomPage', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: 'main',
-          data: { ...sections, [sectionKey]: newData }
-        })
-      })
-
-      if (!response.ok) throw new Error('Ошибка обновления')
-
-      // Обновляем локальное состояние
-      setSections(prev => ({
-        ...prev,
-        [sectionKey]: newData
-      }))
-
+        body: JSON.stringify({ data: newData }),
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Ошибка обновления: ${errorText}`);
+      }
+  
+      // Получаем обновленные данные с сервера
+      const updatedData = await response.json();
+      setBathroomPage(updatedData.data); // Обновляем состояние актуальными данными
+  
       setAlert({
-        message: 'Изменения успешно сохранены',
+        message: 'Страница ванной успешно обновлена',
         type: 'success'
-      })
-    } catch (error: unknown) {
-      console.error('Ошибка при обновлении:', error)
+      });
+    } catch (error) {
+      console.error('Ошибка при обновлении:', error);
       setAlert({
-        message: 'Ошибка при сохранении изменений',
+        message: 'Ошибка при обновлении страницы',
         type: 'error'
-      })
+      });
     }
-  }
-
-  // const updateCollections = async (newCollections: CollectionItem[]) => {
-  //   try {
-  //     const response = await fetch('/api/collections', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ data: newCollections })
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorText = await response.text();
-  //       console.error("Ответ сервера:", errorText);
-  //       throw new Error(`Ошибка обновления: ${errorText}`);
-  //     }
-
-  //     const result = await response.json();
-  //     console.log("Результат обновления:", result);
-
-  //     // Обновляем состояние коллекций
-  //     setCollections(result.data); // Используем данные из ответа API
-  //     setAlert({
-  //       message: 'Коллекции успешно обновлены',
-  //       type: 'success'
-  //     });
-  //   } catch (error) {
-  //     console.error('Ошибка при обновлении коллекций:', error);
-  //     setAlert({
-  //       message: `Ошибка при обновлении коллекций: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
-  //       type: 'error'
-  //     });
-  //   }
-  // };
-
-  // const updateCollections = async (newCollections: CollectionItem[]) => {
-  //   try {
-  //     const response = await fetch("/api/collections", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ data: newCollections }),
-  //     })
-
-  //     if (!response.ok) {
-  //       const errorText = await response.text()
-  //       console.error("Ответ сервера:", errorText)
-  //       throw new Error(`Ошибка обновления: ${errorText}`)
-  //     }
-
-  //     const result = await response.json()
-  //     console.log("Результат обновления:", result)
-
-  //     // Обновляем состояние коллекций
-  //     setCollections(result.data)
-  //   } catch (error) {
-  //     console.error("Ошибка при обновлении коллекций:", error)
-  //     throw error // Перебрасываем ошибку для обработки в компоненте
-  //   }
-  // }
-
-  // const updateCollectionDetail = (id: number, newData: CollectionDetail) => {
-  //   setCollectionDetails((prevDetails) => prevDetails.map((detail) => (detail.id === id ? newData : detail)));
-  // };
-
-  // Функция обновления данных страницы ванной
-  const updateBathroomPage = (newData: BathroomPage) => {
-    setBathroomPage(newData);
   };
+
+  const fetchBathroomPage = async () => {
+    try {
+      const response = await fetch('/api/bathroomPage');
+      if (!response.ok) {
+        throw new Error('Failed to fetch bathroom page data');
+      }
+      const data = await response.json();
+      setBathroomPage(data.data);
+    } catch (error) {
+      console.error('Error fetching bathroom page:', error);
+      setAlert({
+        message: 'Ошибка при загрузке данных',
+        type: 'error'
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchBathroomPage();
+  }, []);
 
   const updateKitchenPage = (newData: KitchenPage) => {
     setKitchenPage(newData);
@@ -730,15 +513,15 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         sections,
         collections,
         collectionDetails,
-        bathroomPage, // Добавляем новое свойство
-        kitchenPage, // Добавляем новое свойство
-        aboutPage, // Добавляем новое свойство
+        bathroomPage,
+        kitchenPage,
+        aboutPage,
         updateSection,
         updateCollections,
         updateCollectionDetails,
-        updateBathroomPage, // Добавляем новую функцию обновления
-        updateKitchenPage, // Добавляем новую функцию обновления
-        updateAboutPage, // Добавляем новую функцию обновления
+        updateBathroomPage,
+        updateKitchenPage,
+        updateAboutPage,
         fetchCollections,
         fetchCollectionDetails,
       }}

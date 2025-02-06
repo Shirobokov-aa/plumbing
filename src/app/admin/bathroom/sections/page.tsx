@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSections } from "../../contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,12 +9,41 @@ import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+// Определяем типы
+interface Section {
+  title: string;
+  description: string;
+  link: {
+    text: string;
+    url: string;
+  };
+  images: {
+    src: string;
+    alt: string;
+  }[];
+}
+
 export default function BathroomSectionsAdminPage() {
   const { bathroomPage, updateBathroomPage } = useSections()
-  const [sections, setSections] = useState(bathroomPage.sections)
+  const [sections, setSections] = useState<Section[]>([])
 
-  const handleSave = () => {
-    updateBathroomPage({ ...bathroomPage, sections })
+  useEffect(() => {
+    if (bathroomPage?.sections) {
+      setSections(bathroomPage.sections)
+    }
+  }, [bathroomPage])
+
+  const handleSave = async () => {
+    if (!bathroomPage) return;
+    
+    try {
+      await updateBathroomPage({
+        ...bathroomPage,
+        sections
+      });
+    } catch (error) {
+      console.error("Error saving bathroom page:", error)
+    }
   }
 
   const handleSectionChange = (index: number, field: string, value: string) => {
@@ -49,6 +78,10 @@ export default function BathroomSectionsAdminPage() {
       })
     }
     reader.readAsDataURL(file)
+  }
+
+  if (!bathroomPage) {
+    return <div>Загрузка...</div>
   }
 
   return (

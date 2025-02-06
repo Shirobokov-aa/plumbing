@@ -39,15 +39,15 @@ export default function AddCollectionAdmin() {
 
   const handleSave = async () => {
     try {
-      const newId = collections.length + 1
+      const newId = Date.now(); // Временный ID для новых записей
       const updatedCollections = [...collections, { ...newCollection, id: newId }]
       const updatedCollectionDetails = [...collectionDetails, { ...newCollectionDetail, id: newId }]
+
       await Promise.all([
         updateCollections(updatedCollections, false),
         updateCollectionDetails(updatedCollectionDetails, false),
       ])
-      console.log("Новая коллекция добавлена:", newCollection)
-      console.log("Новая детальная информация о коллекции добавлена:", newCollectionDetail)
+
       router.push("/admin/collections")
     } catch (error) {
       console.error("Ошибка при добавлении коллекции:", error)
