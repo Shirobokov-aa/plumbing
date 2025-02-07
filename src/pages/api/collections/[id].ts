@@ -3,6 +3,14 @@ import { db } from "@/db/index"
 import { collectionsTable } from "@/db/schema"
 import { eq } from "drizzle-orm"
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb'
+    },
+  },
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query
 

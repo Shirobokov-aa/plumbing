@@ -11,6 +11,14 @@ export function Sidebar() {
   const pathname = usePathname()
   const { collectionDetails } = useSections()
 
+  // Фильтруем только заполненные коллекции
+  const activeCollections = collectionDetails.filter(collection => 
+    collection.name && // Проверяем наличие имени
+    collection.banner?.title && // Проверяем наличие заголовка баннера
+    collection.banner?.description && // Проверяем наличие описания баннера
+    collection.banner?.image // Проверяем наличие изображения баннера
+  )
+
   const sidebarItems = [
     {
       title: "Главная страница",
@@ -27,9 +35,9 @@ export function Sidebar() {
       items: [
         { title: "Все коллекции", href: "/admin/collections" },
         { title: "Добавить коллекцию", href: "/admin/collections/add" },
-        // Только для коллекций, которые есть в collectionDetails
-        ...collectionDetails.map((collection) => ({
-          title: `Редактировать ${collection.name ? collection.name.toUpperCase() : "Unnamed Collection"}`, // Проверка на наличие name
+        // Используем отфильтрованные активные коллекции
+        ...activeCollections.map((collection) => ({
+          title: collection.name.toUpperCase(),
           href: `/admin/collections/edit/${collection.id}`,
         })),
       ],
@@ -76,7 +84,10 @@ export function Sidebar() {
                 <AccordionContent>
                   {section.items.map((item, itemIndex) => (
                     <Link href={item.href} key={itemIndex}>
-                      <Button variant={pathname === item.href ? "secondary" : "ghost"} className="w-full justify-start">
+                      <Button 
+                        variant={pathname === item.href ? "secondary" : "ghost"} 
+                        className="w-full justify-start text-left"
+                      >
                         {item.title}
                       </Button>
                     </Link>

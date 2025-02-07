@@ -17,6 +17,7 @@ import SectionEditor from "@/components/admin/collection-detail/SectionEditor"
 export default function AddCollectionAdmin() {
   const { collections, collectionDetails, updateCollections, updateCollectionDetails } = useSections()
   const router = useRouter()
+  const [collectionId, setCollectionId] = useState<string>("")
   const [newCollection, setNewCollection] = useState<Omit<CollectionItem, "id">>({
     title: "",
     desc: "",
@@ -40,9 +41,20 @@ export default function AddCollectionAdmin() {
 
   const handleSave = async () => {
     try {
-      const newId = Date.now(); // Временный ID для новых записей
-      const updatedCollections = [...collections, { ...newCollection, id: newId }]
-      const updatedCollectionDetails = [...collectionDetails, { ...newCollectionDetail, id: newId }]
+      if (!collectionId) {
+        alert("Пожалуйста, введите ID коллекции")
+        return
+      }
+
+      const numericId = parseInt(collectionId)
+
+      if (collections.some(c => c.id === numericId)) {
+        alert('Коллекция с таким ID уже существует')
+        return
+      }
+
+      const updatedCollections = [...collections, { ...newCollection, id: numericId }]
+      const updatedCollectionDetails = [...collectionDetails, { ...newCollectionDetail, id: numericId }]
 
       await Promise.all([
         updateCollections(updatedCollections, false),
@@ -91,6 +103,17 @@ export default function AddCollectionAdmin() {
           <CardTitle>Новая коллекция</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="collectionId">ID коллекции</Label>
+            <Input 
+              id="collectionId" 
+              type="number" 
+              value={collectionId}
+              onChange={(e) => setCollectionId(e.target.value)}
+              placeholder="Введите ID коллекции"
+              required
+            />
+          </div>
           <div>
             <Label htmlFor="title">Заголовок</Label>
             <Input id="title" value={newCollection.title} onChange={(e) => handleChange("title", e.target.value)} />

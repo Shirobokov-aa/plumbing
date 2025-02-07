@@ -94,7 +94,8 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
       router.push('/admin/collections');
     } catch (error) {
       console.error('Error saving collection:', error);
-      // Добавьте обработку ошибки, например, показ уведомления
+      // Добавляем уведомление об ошибке для пользователя
+      alert('Ошибка при сохранении коллекции. Пожалуйста, попробуйте еще раз.');
     }
   };
 

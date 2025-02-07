@@ -188,6 +188,7 @@ interface SectionsContextType {
   fetchCollectionDetails: () => Promise<void>;
   fetchAboutPage: () => Promise<void>;
   updateCollectionDetail: (id: number, data: any) => Promise<void>;
+  deleteCollection: (id: number) => Promise<void>;
 }
 
 export const SectionsContext = createContext<SectionsContextType | null>(null)
@@ -274,23 +275,28 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const fetchCollections = useCallback(async () => {
     try {
-      console.log("🔄 Начинаем загрузку коллекций...")
-      const response = await fetch("/api/collections")
+      const response = await fetch('/api/collections')
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      console.log("📦 Загруженные данные коллекций:", data)
+      
+      // Проверяем, является ли data массивом напрямую
       if (Array.isArray(data)) {
+        console.log("📦 Загруженные данные коллекций:", data)
         setCollections(data)
       } else if (data && Array.isArray(data.data)) {
+        // Поддержка старого формата с полем data
+        console.log("📦 Загруженные данные коллекций:", data.data)
         setCollections(data.data)
       } else {
         console.error("Неожиданный формат данных:", data)
         setCollections([])
       }
     } catch (error) {
-      console.error("Ошибка при загрузке коллекций:", error)
+      console.error('Error fetching collections:', error)
+      setCollections([])
+      throw error
     }
   }, [])
 
@@ -298,12 +304,14 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     fetchCollections()
   }, [fetchCollections])
 
-  const updateCollections = async (newCollections: CollectionItem[], isEdit = false) => {
+  const updateCollections = async (newCollections: CollectionItem[], shouldRefetch = true) => {
     try {
-      const response = await fetch("/api/collections", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: newCollections, isEdit }),
+      const response = await fetch('/api/collections', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: newCollections }),
       });
 
       if (!response.ok) {
@@ -311,17 +319,15 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       const result = await response.json();
-      setCollections(result.data);
-      setAlert({
-        message: 'Коллекции успешно обновлены',
-        type: 'success'
-      });
+      setCollections(newCollections);
+
+      if (shouldRefetch) {
+        await fetchCollections();
+      }
+
+      return result;
     } catch (error) {
-      console.error('Ошибка при обновлении коллекций:', error);
-      setAlert({
-        message: 'Ошибка при обновлении коллекций',
-        type: 'error'
-      });
+      console.error('Error updating collections:', error);
       throw error;
     }
   };
@@ -366,7 +372,7 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw new Error('Failed to fetch collection details')
       }
       const data = await response.json()
-      console.log("�� Загруженные данные детальной информации о коллекциях:", data)
+      console.log("Загруженные данные детальной информации о коллекциях:", data)
       setCollectionDetails(data)
       return data
     } catch (error) {
@@ -656,8 +662,74 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const compressImage = async (base64String: string, maxWidth = 1200, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = base64String;
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width = img.width;
+        let height = img.height;
+        
+        // Сохраняем пропорции при изменении размера
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Определяем формат изображения из base64String
+        const isPNG = base64String.includes('data:image/png');
+        
+        // Используем соответствующий формат при сжатии
+        const compressedBase64 = canvas.toDataURL(
+          isPNG ? 'image/png' : 'image/jpeg', 
+          quality
+        );
+        
+        resolve(compressedBase64);
+      };
+      
+      img.onerror = (error) => {
+        console.error('Error loading image:', error);
+        reject(error);
+      };
+    });
+  };
+
   const updateCollectionDetail = async (id: number, data: any) => {
     try {
+      // Сжимаем изображение баннера, если оно есть
+      if (data.banner?.image && data.banner.image.startsWith('data:image')) {
+        try {
+          data.banner.image = await compressImage(data.banner.image);
+        } catch (error) {
+          console.error('Error compressing banner image:', error);
+          throw new Error('Failed to compress banner image');
+        }
+      }
+
+      // Сжимаем изображения в секциях, если они есть
+      if (data.sections) {
+        for (let section of data.sections) {
+          if (section.image && section.image.startsWith('data:image')) {
+            try {
+              section.image = await compressImage(section.image);
+            } catch (error) {
+              console.error('Error compressing section image:', error);
+              throw new Error('Failed to compress section image');
+            }
+          }
+        }
+      }
+
       const response = await fetch(`/api/collections/${id}`, {
         method: 'PUT',
         headers: {
@@ -667,12 +739,12 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update collection detail');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update collection detail');
       }
 
       const result = await response.json();
       
-      // Обновляем состояние после успешного обновления
       setCollectionDetails((prev) => {
         const newDetails = [...prev];
         const index = newDetails.findIndex((detail) => detail.id === id);
@@ -686,6 +758,24 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (error) {
       console.error('Error updating collection detail:', error);
       throw error;
+    }
+  };
+
+  const deleteCollection = async (id: number) => {
+    try {
+      // Удаляем коллекцию из обоих списков
+      const updatedCollections = collections.filter(c => c.id !== id);
+      const updatedCollectionDetails = collectionDetails.filter(c => c.id !== id);
+
+      // Обновляем оба списка
+      await Promise.all([
+        updateCollections(updatedCollections),
+        updateCollectionDetails(updatedCollectionDetails)
+      ]);
+
+    } catch (error) {
+      console.error('Error deleting collection:', error);
+      throw new Error('Failed to delete collection');
     }
   };
 
@@ -708,6 +798,7 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         fetchCollectionDetails,
         fetchAboutPage,
         updateCollectionDetail,
+        deleteCollection,
       }}
     >
       {alert && <Alert message={alert.message} type={alert.type} />}
