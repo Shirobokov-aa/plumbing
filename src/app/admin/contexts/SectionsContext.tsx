@@ -189,15 +189,83 @@ interface SectionsContextType {
   fetchAboutPage: () => Promise<void>;
   updateCollectionDetail: (id: number, data: any) => Promise<void>;
   deleteCollection: (id: number) => Promise<void>;
+
+  isLoading: boolean;
+  error: string | null;
 }
 
 export const SectionsContext = createContext<SectionsContextType | null>(null)
 
-export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLoading, setIsLoading] = useState(true);
+export const SectionsProvider = ({ children }: { children: React.ReactNode }) => {
+  const [collections, setCollections] = useState<CollectionItem[]>([]);
+  const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const fetchCollections = useCallback(async () => {
+    if (isLoading) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/collections', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        // Добавляем эти параметры для предотвращения ошибок CORS и кэширования
+        credentials: 'same-origin',
+        next: { revalidate: 0 }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setCollections(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching collections:', error);
+      setError(error instanceof Error ? error.message : 'Ошибка загрузки');
+      setCollections([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading]);
+
+  const forceRefetch = useCallback(async () => {
+    setIsInitialized(false);
+    await fetchCollections();
+  }, [fetchCollections]);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      fetchCollections();
+    }
+  }, [isInitialized, fetchCollections]);
+
+  const updateCollections = useCallback(async (newCollections: CollectionItem[]) => {
+    try {
+      const response = await fetch('/api/collections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: newCollections }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      setCollections(newCollections);
+      forceRefetch(); // Сбрасываем флаг инициализации для следующей загрузки
+    } catch (error) {
+      console.error('Error updating collections:', error);
+      throw error;
+    }
+  }, [forceRefetch]);
+
   const [sections, setSections] = useState<SectionsMainPage>({});
-  const [collections, setCollections] = useState<CollectionItem[]>([])
-  const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([])
   const [alert, setAlert] = useState<AlertType | null>(null);
 
   const loadSections = useCallback(async () => {
@@ -218,8 +286,6 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     } catch (error) {
       console.error("Ошибка загрузки секций:", error);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -273,65 +339,6 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const fetchCollections = useCallback(async () => {
-    try {
-      const response = await fetch('/api/collections')
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      const data = await response.json()
-      
-      // Проверяем, является ли data массивом напрямую
-      if (Array.isArray(data)) {
-        console.log("📦 Загруженные данные коллекций:", data)
-        setCollections(data)
-      } else if (data && Array.isArray(data.data)) {
-        // Поддержка старого формата с полем data
-        console.log("📦 Загруженные данные коллекций:", data.data)
-        setCollections(data.data)
-      } else {
-        console.error("Неожиданный формат данных:", data)
-        setCollections([])
-      }
-    } catch (error) {
-      console.error('Error fetching collections:', error)
-      setCollections([])
-      throw error
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchCollections()
-  }, [fetchCollections])
-
-  const updateCollections = async (newCollections: CollectionItem[], shouldRefetch = true) => {
-    try {
-      const response = await fetch('/api/collections', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data: newCollections }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      setCollections(newCollections);
-
-      if (shouldRefetch) {
-        await fetchCollections();
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Error updating collections:', error);
-      throw error;
-    }
-  };
-
   const updateCollectionDetails = async (newDetails: CollectionDetailItem[], isEdit = false) => {
     try {
       const response = await fetch("/api/collectionDetails", {
@@ -360,26 +367,29 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const fetchCollectionDetails = async () => {
+  const fetchCollectionDetails = useCallback(async () => {
+    if (isLoading) return;
+    
     try {
-      // Проверяем, есть ли уже загруженные данные
-      if (collectionDetails.length > 0) {
-        return collectionDetails
-      }
-
+      setIsLoading(true)
       const response = await fetch('/api/collectionDetails')
       if (!response.ok) {
         throw new Error('Failed to fetch collection details')
       }
       const data = await response.json()
-      console.log("Загруженные данные детальной информации о коллекциях:", data)
-      setCollectionDetails(data)
-      return data
+      
+      if (data && Array.isArray(data.data)) {
+        setCollectionDetails(data.data)
+      } else {
+        setCollectionDetails([])
+      }
     } catch (error) {
       console.error('Error fetching collection details:', error)
-      throw error
+      setCollectionDetails([])
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [isLoading])
 
   useEffect(() => {
     fetchCollectionDetails()
@@ -794,18 +804,20 @@ export const SectionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateBathroomPage,
         updateKitchenPage,
         updateAboutPage,
-        fetchCollections,
+        fetchCollections: forceRefetch,
         fetchCollectionDetails,
         fetchAboutPage,
         updateCollectionDetail,
         deleteCollection,
+
+        isLoading,
+        error,
       }}
     >
       {alert && <Alert message={alert.message} type={alert.type} />}
       {children}
     </SectionsContext.Provider>
   );
-
 };
 
 export const useSections = () => {

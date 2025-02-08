@@ -18,30 +18,17 @@ import {
 } from "@/components/ui/alert-dialog"
 
 function CollectionsAdmin() {
-  const { collections, fetchCollections, deleteCollection } = useSections()
-  const [isLoading, setIsLoading] = useState(true)
+  const { collections, isLoading, error: contextError, fetchCollections, deleteCollection } = useSections()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadCollections = async () => {
-      try {
-        setIsLoading(true)
-        await fetchCollections()
-      } catch (err) {
-        console.error("Ошибка при загрузке коллекций:", err)
-        setError("Не удалось загрузить коллекции")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadCollections()
-  }, [fetchCollections])
+    fetchCollections()
+  }, [])
 
   const handleDelete = async (id: number) => {
     try {
       await deleteCollection(id)
-      await fetchCollections()
+      fetchCollections()
     } catch (error) {
       console.error("Ошибка при удалении коллекции:", error)
       setError("Не удалось удалить коллекцию")
@@ -52,8 +39,8 @@ function CollectionsAdmin() {
     return <div className="text-center py-10">Загрузка...</div>
   }
 
-  if (error) {
-    return <div className="text-center text-red-500 py-10">{error}</div>
+  if (contextError || error) {
+    return <div className="text-center text-red-500 py-10">{contextError || error}</div>
   }
 
   return (

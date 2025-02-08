@@ -6,12 +6,18 @@ import { collectionsTable } from "@/db/schema"
 import { eq } from "drizzle-orm"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Добавляем заголовки для предотвращения кэширования
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   if (req.method === "GET") {
     try {
       const collections = await db.select().from(collectionsTable)
       const data = collections.length > 0 ? collections[0].data : []
       res.status(200).json(data)
     } catch (error) {
+      console.error("Error fetching collections:", error)
       res.status(500).json({ error: "Failed to fetch collections" })
     }
   } else if (req.method === "POST") {
