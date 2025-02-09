@@ -8,22 +8,18 @@ import Image from "next/image"
 import type { CollectionItem } from "../admin/contexts/SectionsContext"
 
 function CollectionCard({ item }: { item: CollectionItem }) {
+  const imageSrc = item.image || "/placeholder.svg";
+  
   return (
     <div className={`flex ${item.flexDirection} flex-col-reverse xl:gap-24 gap-5`}>
       <div className="xl:max-w-[526px] w-full">
-        {item.image ? (
-          <Image
-            src={item.image || "/placeholder.svg"}
-            alt={item.title || "Изображение коллекции"}
-            width={526}
-            height={526}
-            className="object-contain"
-          />
-        ) : (
-          <div className="w-full h-[526px] bg-gray-100 flex items-center justify-center">
-            <span className="text-gray-400">Нет изображения</span>
-          </div>
-        )}
+        <Image
+          src={imageSrc}
+          alt={item.title || "Изображение коллекции"}
+          width={526}
+          height={526}
+          className="object-contain"
+        />
       </div>
       <div className="xl:max-w-[614px] w-full flex flex-col justify-around">
         <div className="flex flex-col gap-11">

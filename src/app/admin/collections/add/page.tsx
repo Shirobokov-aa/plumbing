@@ -46,6 +46,11 @@ export default function AddCollectionAdmin() {
         return
       }
 
+      if (!newCollection.title || !newCollection.desc) {
+        alert("Пожалуйста, заполните обязательные поля (название и описание)")
+        return
+      }
+
       const numericId = parseInt(collectionId)
 
       if (collections.some(c => c.id === numericId)) {
@@ -53,8 +58,23 @@ export default function AddCollectionAdmin() {
         return
       }
 
-      const updatedCollections = [...collections, { ...newCollection, id: numericId }]
-      const updatedCollectionDetails = [...collectionDetails, { ...newCollectionDetail, id: numericId }]
+      const formattedCollection = {
+        ...newCollection,
+        image: newCollection.image || null,
+        id: numericId
+      }
+
+      const formattedCollectionDetail = {
+        ...newCollectionDetail,
+        id: numericId,
+        banner: {
+          ...newCollectionDetail.banner,
+          image: newCollectionDetail.banner.image || null
+        }
+      }
+
+      const updatedCollections = [...collections, formattedCollection]
+      const updatedCollectionDetails = [...collectionDetails, formattedCollectionDetail]
 
       await Promise.all([
         updateCollections(updatedCollections, false),
@@ -64,6 +84,7 @@ export default function AddCollectionAdmin() {
       router.push("/admin/collections")
     } catch (error) {
       console.error("Ошибка при добавлении коллекции:", error)
+      alert("Произошла ошибка при сохранении коллекции")
     }
   }
 

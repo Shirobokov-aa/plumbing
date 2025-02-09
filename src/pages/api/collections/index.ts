@@ -14,7 +14,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     try {
       const collections = await db.select().from(collectionsTable)
-      const data = collections.length > 0 ? collections[0].data : []
+      let data = collections.length > 0 ? collections[0].data : []
+      
+      // Проверяем и форматируем данные
+      if (Array.isArray(data)) {
+        data = data.map(item => ({
+          ...item,
+          image: item.image || null,
+          id: Number(item.id)
+        }))
+      }
+      
       res.status(200).json(data)
     } catch (error) {
       console.error("Error fetching collections:", error)

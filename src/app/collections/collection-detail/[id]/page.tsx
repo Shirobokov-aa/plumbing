@@ -7,8 +7,8 @@ export default function CollectionDetail({ params }: { params: { id: string } })
   return (
     <div>
       <Header defaultTextColor="text-black" activeTextColor="text-black" />
-      <Suspense fallback={<div>Loading...</div>}>
-        <CollectionContent params={params} />
+      <Suspense fallback={<div>Загрузка...</div>}>
+        <CollectionContent params={Promise.resolve(params)} />
       </Suspense>
       <Footer />
     </div>

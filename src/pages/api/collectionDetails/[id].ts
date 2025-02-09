@@ -13,25 +13,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from(collectionDetailsTable)
         .where(eq(collectionDetailsTable.id, Number(id)))
         .limit(1)
+
       if (collectionDetail.length > 0) {
-        res.status(200).json(collectionDetail[0])
+        res.status(200).json(collectionDetail[0].data)
       } else {
         res.status(404).json({ message: "Collection detail not found" })
       }
     } else if (req.method === "PUT") {
       const { data } = req.body
-      const updated = await db
+      
+      // Проверяем существование записи
+      let result = await db
         .update(collectionDetailsTable)
         .set({ data })
         .where(eq(collectionDetailsTable.id, Number(id)))
         .returning()
 
-      res.status(200).json({ data: updated[0].data })
-    } else if (req.method === "DELETE") {
-      await db
-        .delete(collectionDetailsTable)
-        .where(eq(collectionDetailsTable.id, Number(id)))
-      res.status(200).json({ message: "Collection detail deleted successfully" })
+      // Если записи нет, создаем новую
+      if (result.length === 0) {
+        result = await db
+          .insert(collectionDetailsTable)
+          .values({ id: Number(id), data })
+          .returning()
+      }
+
+      if (result.length > 0) {
+        res.status(200).json(result[0].data)
+      } else {
+        res.status(500).json({ message: "Failed to update/create collection detail" })
+      }
     } else {
       res.status(405).json({ message: "Method not allowed" })
     }

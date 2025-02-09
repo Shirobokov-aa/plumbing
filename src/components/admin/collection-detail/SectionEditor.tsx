@@ -133,7 +133,7 @@ export default function SectionEditor({ sectionType, sections, onChange }: Secti
               <div className="grid grid-cols-3 gap-4 mt-2">
                 {Array.from({ length: sectionType === 'sections4' ? 3 : sectionType === 'sections' ? 3 : 1 }).map((_, imageIndex) => (
                   <div key={imageIndex}>
-                    {section.images?.[imageIndex]?.src && (
+                    {section.images?.[imageIndex]?.src && section.images[imageIndex]?.src !== null && (
                       <Image
                         src={section.images[imageIndex].src}
                         alt={section.images[imageIndex].alt || ""}

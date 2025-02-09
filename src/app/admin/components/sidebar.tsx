@@ -9,14 +9,14 @@ import { useSections } from "../contexts/SectionsContext"
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { collectionDetails } = useSections()
+  const { collectionDetails = [] } = useSections()
 
   // Фильтруем только заполненные коллекции
-  const activeCollections = collectionDetails.filter(collection => 
-    collection.name && // Проверяем наличие имени
-    collection.banner?.title && // Проверяем наличие заголовка баннера
-    collection.banner?.description && // Проверяем наличие описания баннера
-    collection.banner?.image // Проверяем наличие изображения баннера
+  const activeCollections = (collectionDetails || []).filter(collection => 
+    collection?.name && // Проверяем наличие имени
+    collection?.banner?.title && // Проверяем наличие заголовка баннера
+    collection?.banner?.description && // Проверяем наличие описания баннера
+    collection?.banner?.image // Проверяем наличие изображения баннера
   )
 
   const sidebarItems = [
@@ -35,7 +35,6 @@ export function Sidebar() {
       items: [
         { title: "Все коллекции", href: "/admin/collections" },
         { title: "Добавить коллекцию", href: "/admin/collections/add" },
-        // Используем отфильтрованные активные коллекции
         ...activeCollections.map((collection) => ({
           title: collection.name.toUpperCase(),
           href: `/admin/collections/edit/${collection.id}`,
@@ -43,18 +42,16 @@ export function Sidebar() {
       ],
     },
     {
-      title: "Ванная", // Новый раздел
+      title: "Ванная",
       items: [
-        // { title: "Общие настройки", href: "/admin/bathroom" },
         { title: "Баннер", href: "/admin/bathroom/banner" },
         { title: "Секции", href: "/admin/bathroom/sections" },
         { title: "Коллекции", href: "/admin/bathroom/collections" },
       ],
     },
     {
-      title: "Кухня", // Новый раздел
+      title: "Кухня",
       items: [
-        // { title: "Общие настройки", href: "/admin/bathroom" },
         { title: "Баннер", href: "/admin/kitchen/banner" },
         { title: "Секции", href: "/admin/kitchen/sections" },
         { title: "Коллекции", href: "/admin/kitchen/collections" },

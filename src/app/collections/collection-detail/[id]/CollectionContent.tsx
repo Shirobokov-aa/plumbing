@@ -18,8 +18,12 @@ import CollectionDetailSection3 from "@/components/collection-detail/CollectionD
 import CollectionDetailSection4 from "@/components/collection-detail/CollectionDetailSection4";
 
 interface ImageBlockData {
-  src: string;
+  src: string | null;
   alt?: string;
+  desc?: string;
+  url?: string;
+  width?: number;
+  height?: number;
 }
 
 interface Section {
@@ -60,23 +64,28 @@ export function CollectionContent({ params }: CollectionContentProps) {
   const { collectionDetails, fetchCollectionDetails } = useSections();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const loadCollection = useCallback(async () => {
+    if (!resolvedParams?.id || isInitialized) return;
+    
     try {
-      if (collectionDetails.length === 0) {
-        await fetchCollectionDetails();
-      }
-      setIsLoading(false);
+      setIsLoading(true);
+      await fetchCollectionDetails();
+      setIsInitialized(true);
     } catch (err) {
       console.error("Ошибка при загрузке коллекции:", err);
       setError("Не удалось загрузить коллекцию");
+    } finally {
       setIsLoading(false);
     }
-  }, [fetchCollectionDetails, collectionDetails.length]);
+  }, [resolvedParams?.id, fetchCollectionDetails, isInitialized]);
 
   useEffect(() => {
-    loadCollection();
-  }, [loadCollection]);
+    if (!isInitialized) {
+      loadCollection();
+    }
+  }, [loadCollection, isInitialized]);
 
   if (isLoading) {
     return <div>Загрузка...</div>;
@@ -91,6 +100,22 @@ export function CollectionContent({ params }: CollectionContentProps) {
   if (!collection) {
     return <div>Коллекция не найдена</div>;
   }
+
+  const safeCollection = {
+    ...collection,
+    banner: {
+      ...collection.banner,
+      image: collection.banner?.image || '/placeholder.svg',
+    },
+    sections: collection.sections?.map(section => ({
+      ...section,
+      image: section.image || '/placeholder.svg',
+      images: section.images?.map(img => ({
+        ...img,
+        src: img.src || '/placeholder.svg'
+      })) || []
+    })) || []
+  };
 
   return (
     <>
@@ -120,20 +145,23 @@ export function CollectionContent({ params }: CollectionContentProps) {
         </div>
       </section>
       <CollectionDetailBanner 
-        {...collection.banner} 
-        name={collection.name} 
-        link={typeof collection.link === 'string' 
-          ? { text: collection.link, url: collection.link }
-          : collection.link || { text: '', url: '' }
+        {...safeCollection.banner} 
+        name={safeCollection.name} 
+        link={typeof safeCollection.link === 'string' 
+          ? { text: safeCollection.link, url: safeCollection.link }
+          : safeCollection.link || { text: '', url: '' }
         } 
       />
-      {collection.sections.map((section, index) => (
+      {safeCollection.sections.map((section, index) => (
         <CollectionDetailSection 
           key={index} 
           {...section} 
           reverse={index % 2 !== 0}
           link={section.link || { text: '', url: '' }}
-          images={section.images || []}
+          images={(section.images || []).map(img => ({
+            ...img,
+            src: img.src || '/placeholder.svg'
+          }))}
         />
       ))}
       {collection.sections2.map((section, index) => (
@@ -144,7 +172,10 @@ export function CollectionContent({ params }: CollectionContentProps) {
           titleDesc={section.titleDesc || ''}
           descriptionDesc={section.descriptionDesc || ''}
           link={section.link || { text: '', url: '' }}
-          images={section.images || []}
+          images={(section.images || []).map(img => ({
+            ...img,
+            src: img.src || '/placeholder.svg'
+          }))}
         />
       ))}
       {collection.sections3.map((section, index) => (
@@ -153,7 +184,10 @@ export function CollectionContent({ params }: CollectionContentProps) {
           {...section} 
           reverse={index % 2 !== 0}
           link={section.link || { text: '', url: '' }}
-          images={section.images || []}
+          images={(section.images || []).map(img => ({
+            ...img,
+            src: img.src || '/placeholder.svg'
+          }))}
         />
       ))}
       {collection.sections4.map((section, index) => (
@@ -161,7 +195,10 @@ export function CollectionContent({ params }: CollectionContentProps) {
           key={index} 
           {...section} 
           reverse={index % 2 !== 0}
-          images={section.images || []}
+          images={(section.images || []).map(img => ({
+            ...img,
+            src: img.src || '/placeholder.svg'
+          }))}
         />
       ))}
     </>

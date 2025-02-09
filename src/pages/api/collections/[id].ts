@@ -22,7 +22,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .where(eq(collectionsTable.id, Number(id)))
         .limit(1)
       if (collection.length > 0) {
-        res.status(200).json(collection[0])
+        // Проверяем и форматируем данные
+        const data = collection[0].data as {
+          image?: string;
+          banner?: {
+            image?: string;
+            [key: string]: any;
+          };
+          [key: string]: any;
+        };
+        
+        const formattedData = typeof data === 'object' && data !== null ? {
+          ...data,
+          image: data.image || null,
+          banner: {
+            ...data.banner,
+            image: data.banner?.image || null
+          },
+          sections: (data.sections || []).map((section: any) => ({
+            ...section,
+            image: section.image || null,
+            images: (section.images || []).map((img: any) => ({
+              ...img,
+              src: img.src || null
+            }))
+          }))
+        } : {};
+        
+        res.status(200).json(formattedData);
       } else {
         res.status(404).json({ message: "Collection not found" })
       }

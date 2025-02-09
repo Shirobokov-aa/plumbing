@@ -12,11 +12,12 @@ import Image from "next/image"
 import SectionEditor from "@/components/admin/collection-detail/SectionEditor"
 
 interface CollectionDetail {
+  id: number;
   name: string;
   banner: {
     title: string;
     description: string;
-    image: string;
+    image: string | null;
     link?: { text: string; url: string };
   };
   sections: any[];
@@ -25,26 +26,36 @@ interface CollectionDetail {
   sections4: any[];
 }
 
+interface ImageData {
+  src?: string;
+  alt?: string;
+  desc?: string;
+  url?: string;
+}
+
 export default function EditCollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { collections, collectionDetails, updateCollectionDetail } = useSections()
+  const { collections = [], collectionDetails = [], updateCollectionDetail } = useSections()
   const [collectionDetail, setCollectionDetail] = useState<CollectionDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   
   const resolvedParams = use(params)
 
   useEffect(() => {
+    if (!collectionDetails || collectionDetails.length === 0) {
+      return; // Ждем загрузки данных
+    }
+
     const foundCollectionDetail = collectionDetails.find(
       (detail) => detail.id === parseInt(resolvedParams.id)
     )
 
     if (foundCollectionDetail) {
-      setCollectionDetail(foundCollectionDetail)
-      setIsLoading(false)
+      setCollectionDetail(foundCollectionDetail as CollectionDetail)
     } else {
       console.error("Коллекция не найдена")
-      setIsLoading(false)
     }
+    setIsLoading(false)
   }, [resolvedParams.id, collections, collectionDetails])
 
   if (isLoading) {
@@ -90,11 +101,52 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
     try {
       if (!collectionDetail) return;
       
-      await updateCollectionDetail(parseInt(resolvedParams.id), collectionDetail);
+      console.log('Saving collection:', collectionDetail); // Для отладки
+
+      const response = await updateCollectionDetail(parseInt(resolvedParams.id), {
+        ...collectionDetail,
+        banner: {
+          ...collectionDetail.banner,
+          image: collectionDetail.banner.image || null,
+        },
+        sections: collectionDetail.sections.map(section => ({
+          ...section,
+          image: section.image || null,
+          images: (section.images || []).map((img: ImageData) => ({
+            ...img,
+            src: img.src || null
+          }))
+        })),
+        sections2: collectionDetail.sections2.map(section => ({
+          ...section,
+          image: section.image || null,
+          images: (section.images || []).map((img: ImageData) => ({
+            ...img,
+            src: img.src || null
+          }))
+        })),
+        sections3: collectionDetail.sections3.map(section => ({
+          ...section,
+          image: section.image || null,
+          images: (section.images || []).map((img: ImageData) => ({
+            ...img,
+            src: img.src || null
+          }))
+        })),
+        sections4: collectionDetail.sections4.map(section => ({
+          ...section,
+          image: section.image || null,
+          images: (section.images || []).map((img: ImageData) => ({
+            ...img,
+            src: img.src || null
+          }))
+        }))
+      });
+
+      console.log('Save response:', response); // Для отладки
       router.push('/admin/collections');
     } catch (error) {
       console.error('Error saving collection:', error);
-      // Добавляем уведомление об ошибке для пользователя
       alert('Ошибка при сохранении коллекции. Пожалуйста, попробуйте еще раз.');
     }
   };
@@ -102,6 +154,22 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold">Редактирование коллекции {collectionDetail.name}</h1>
+
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <h2 className="text-2xl font-bold mb-4">Основная информация</h2>
+        <div className="space-y-4">
+          <div>
+            <Label>Детальное название</Label>
+            <Input
+              value={collectionDetail.name}
+              onChange={(e) => setCollectionDetail(prev => ({
+                ...prev!,
+                name: e.target.value
+              }))}
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white rounded-lg p-6 shadow-sm">
         <h2 className="text-2xl font-bold mb-4">Баннер</h2>

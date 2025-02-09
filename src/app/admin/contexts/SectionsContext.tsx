@@ -115,8 +115,8 @@ export interface CollectionItem {
   id: number;
   title: string;
   desc: string;
-  image: string;
   link: string;
+  image: string | null;
   flexDirection: "xl:flex-row" | "xl:flex-row-reverse";
 }
 
@@ -127,39 +127,39 @@ export interface CollectionDetailItem {
   banner: {
     title: string;
     description: string;
-    image: string;
+    image: string | null;
   };
   sections: Array<{
     title: string;
     description: string;
-    image: string;
+    image: string | null;
     link?: { text: string; url: string };
-    images?: Array<{ src: string; alt: string }>;
+    images?: Array<{ src: string | null; alt: string }>;
   }>;
   sections2: Array<{
     title: string;
     description: string;
-    image: string;
+    image: string | null;
     link?: { text: string; url: string };
-    images?: Array<{ src: string; alt: string }>;
+    images?: Array<{ src: string | null; alt: string }>;
     titleDesc?: string;
     descriptionDesc?: string;
   }>;
   sections3: Array<{
     title: string;
     description: string;
-    image: string;
+    image: string | null;
     link?: { text: string; url: string };
-    images?: Array<{ src: string; alt: string }>;
+    images?: Array<{ src: string | null; alt: string }>;
     titleDesc?: string;
     descriptionDesc?: string;
   }>;
   sections4: Array<{
     title: string;
     description: string;
-    image: string;
+    image: string | null;
     link?: { text: string; url: string };
-    images?: Array<{ src: string; alt: string }>;
+    images?: Array<{ src: string | null; alt: string }>;
     titleDesc?: string;
     descriptionDesc?: string;
   }>;
@@ -199,24 +199,21 @@ export const SectionsContext = createContext<SectionsContextType | null>(null)
 export const SectionsProvider = ({ children }: { children: React.ReactNode }) => {
   const [collections, setCollections] = useState<CollectionItem[]>([]);
   const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([]);
+  const [isCollectionDetailsInitialized, setIsCollectionDetailsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchCollections = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading || isInitialized) return;
     
     try {
       setIsLoading(true);
       const response = await fetch('/api/collections', {
-        method: 'GET',
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
         },
-        // Добавляем эти параметры для предотвращения ошибок CORS и кэширования
-        credentials: 'same-origin',
-        next: { revalidate: 0 }
       });
 
       if (!response.ok) {
@@ -225,6 +222,7 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
 
       const data = await response.json();
       setCollections(Array.isArray(data) ? data : []);
+      setIsInitialized(true);
     } catch (error) {
       console.error('Error fetching collections:', error);
       setError(error instanceof Error ? error.message : 'Ошибка загрузки');
@@ -232,7 +230,7 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, isInitialized]);
 
   const forceRefetch = useCallback(async () => {
     setIsInitialized(false);
@@ -369,31 +367,31 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
 
   const fetchCollectionDetails = useCallback(async () => {
     if (isLoading) return;
-    
+
     try {
-      setIsLoading(true)
-      const response = await fetch('/api/collectionDetails')
-      if (!response.ok) {
-        throw new Error('Failed to fetch collection details')
-      }
-      const data = await response.json()
+      setIsLoading(true);
+      const response = await fetch('/api/collectionDetails', {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       
-      if (data && Array.isArray(data.data)) {
-        setCollectionDetails(data.data)
-      } else {
-        setCollectionDetails([])
-      }
+      if (!response.ok) throw new Error('Failed to fetch collection details');
+      
+      const data = await response.json();
+      setCollectionDetails(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error fetching collection details:', error)
-      setCollectionDetails([])
+      console.error('Error fetching collection details:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [isLoading])
+  }, [isLoading]);
 
   useEffect(() => {
-    fetchCollectionDetails()
-  }, [fetchCollectionDetails])
+    fetchCollectionDetails();
+  }, []);
 
   const [bathroomPage, setBathroomPage] = useState<BathroomPage>({
     banner: {
@@ -716,57 +714,61 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
 
   const updateCollectionDetail = async (id: number, data: any) => {
     try {
-      // Сжимаем изображение баннера, если оно есть
-      if (data.banner?.image && data.banner.image.startsWith('data:image')) {
-        try {
-          data.banner.image = await compressImage(data.banner.image);
-        } catch (error) {
-          console.error('Error compressing banner image:', error);
-          throw new Error('Failed to compress banner image');
-        }
-      }
+      console.log('Updating collection detail:', { id, data }); // Логируем входные данные
 
-      // Сжимаем изображения в секциях, если они есть
-      if (data.sections) {
-        for (let section of data.sections) {
-          if (section.image && section.image.startsWith('data:image')) {
-            try {
-              section.image = await compressImage(section.image);
-            } catch (error) {
-              console.error('Error compressing section image:', error);
-              throw new Error('Failed to compress section image');
-            }
-          }
-        }
-      }
-
-      const response = await fetch(`/api/collections/${id}`, {
+      // Обновляем детали коллекции
+      const detailResponse = await fetch(`/api/collectionDetails/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to update collection detail');
+      const responseText = await detailResponse.text();
+      console.log('Server response:', responseText); // Логируем ответ сервера
+
+      if (!detailResponse.ok) {
+        throw new Error(`Failed to update collection detail: ${responseText}`);
       }
 
-      const result = await response.json();
-      
-      setCollectionDetails((prev) => {
-        const newDetails = [...prev];
-        const index = newDetails.findIndex((detail) => detail.id === id);
-        if (index !== -1) {
-          newDetails[index] = { ...newDetails[index], ...data };
-        }
-        return newDetails;
+      const responseData = JSON.parse(responseText);
+
+      // Обновляем основную коллекцию
+      const collectionData = {
+        id,
+        title: data.name,
+        desc: data.banner.description,
+        image: data.banner.image,
+        flexDirection: collections.find(c => c.id === id)?.flexDirection || "xl:flex-row",
+      };
+
+      const collectionResponse = await fetch(`/api/collections/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: collectionData }),
       });
 
-      return result;
+      if (!collectionResponse.ok) {
+        throw new Error('Failed to update collection');
+      }
+
+      // Обновляем локальное состояние
+      setCollectionDetails(prev => 
+        prev.map(detail => detail.id === id ? { ...detail, ...data } : detail)
+      );
+
+      setCollections(prev => 
+        prev.map(collection => collection.id === id ? { ...collection, ...collectionData } : collection)
+      );
+
+      // Перезагружаем данные для уверенности
+      await Promise.all([
+        fetchCollections(),
+        fetchCollectionDetails()
+      ]);
+
+      return responseData;
     } catch (error) {
-      console.error('Error updating collection detail:', error);
+      console.error('Error in updateCollectionDetail:', error);
       throw error;
     }
   };
