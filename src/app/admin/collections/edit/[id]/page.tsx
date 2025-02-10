@@ -10,35 +10,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import SectionEditor from "@/components/admin/collection-detail/SectionEditor"
-
-interface CollectionDetail {
-  id: number;
-  name: string;
-  banner: {
-    title: string;
-    description: string;
-    image: string | null;
-    link?: { text: string; url: string };
-  };
-  sections: any[];
-  sections2: any[];
-  sections3: any[];
-  sections4: any[];
-}
-
-interface ImageData {
-  src?: string;
-  alt?: string;
-  desc?: string;
-  url?: string;
-}
+import type { CollectionDetail, Section, ImageData } from "@/app/types/collections"
 
 export default function EditCollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { collections = [], collectionDetails = [], updateCollectionDetail } = useSections()
   const [collectionDetail, setCollectionDetail] = useState<CollectionDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  
+
   const resolvedParams = use(params)
 
   useEffect(() => {
@@ -90,7 +69,7 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
     }))
   }
 
-  const handleDetailChange = (sectionType: string, newSections: any[]) => {
+  const handleDetailChange = (sectionType: string, newSections: Section[]) => {
     setCollectionDetail((prev) => ({
       ...prev!,
       [sectionType]: newSections,
@@ -100,7 +79,7 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
   const handleSave = async () => {
     try {
       if (!collectionDetail) return;
-      
+
       console.log('Saving collection:', collectionDetail); // Для отладки
 
       const response = await updateCollectionDetail(parseInt(resolvedParams.id), {

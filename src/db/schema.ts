@@ -1,35 +1,38 @@
 import { pgTable, text, jsonb, serial } from 'drizzle-orm/pg-core';
+import type { SectionsData } from '@/app/types/sections'
+import type { CollectionItem, CollectionDetail } from '@/app/types/collections'
+import type { BathroomPage, KitchenPage, AboutPage } from "@/app/types/pages"
 
 export const collectionsTable = pgTable("collections", {
   id: serial("id").primaryKey(),
-  data: jsonb("data").notNull(),
+  data: jsonb("data").$type<CollectionItem[]>(),
 })
 
 export const sectionsTable = pgTable("sections", {
   id: serial("id").primaryKey(),
   key: text('key'),
-  data: jsonb("data").notNull(),
+  data: jsonb("data").$type<SectionsData>(),
 })
 
-export const collectionDetailsTable = pgTable("collection_details", {
-  id: serial("id").primaryKey(),
-  data: jsonb("data").notNull(),
+export const collectionDetailsTable = pgTable('collection_details', {
+  id: serial('id').primaryKey(),
+  data: jsonb('data').$type<CollectionDetail[]>(),
 })
 
 export const bathroomPageTable = pgTable('bathroom_page', {
-  id: serial('id').primaryKey().notNull(),
-  data: jsonb('data').notNull()
-});
+  id: serial('id').primaryKey(),
+  data: jsonb('data').$type<BathroomPage>(),
+})
 
 export const kitchenPageTable = pgTable('kitchen_page', {
-  id: serial('id').primaryKey().notNull(),
-  data: jsonb('data').notNull()
-});
+  id: serial('id').primaryKey(),
+  data: jsonb('data').$type<KitchenPage>(),
+})
 
 export const aboutPageTable = pgTable('about_page', {
-  id: serial('id').primaryKey().notNull(),
-  data: jsonb('data').notNull()
-});
+  id: serial('id').primaryKey(),
+  data: jsonb('data').$type<AboutPage>(),
+})
 
 // export const sectionsTable = pgTable('sections', {
 //   id: integer('id').primaryKey().notNull(),

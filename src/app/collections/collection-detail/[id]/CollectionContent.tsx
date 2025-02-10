@@ -1,121 +1,31 @@
 "use client";
 
-import { use } from "react";
-import { useEffect, useState, useCallback } from "react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Slash } from "lucide-react";
-import { useSections } from "@/app/admin/contexts/SectionsContext";
-import CollectionDetailBanner from "@/components/collection-detail/CollectionDetailBanner";
-import CollectionDetailSection from "@/components/collection-detail/CollectionDetailSection";
-import CollectionDetailSection2 from "@/components/collection-detail/CollectionDetailSection2";
-import CollectionDetailSection3 from "@/components/collection-detail/CollectionDetailSection3";
-import CollectionDetailSection4 from "@/components/collection-detail/CollectionDetailSection4";
-
-interface ImageBlockData {
-  src: string | null;
-  alt?: string;
-  desc?: string;
-  url?: string;
-  width?: number;
-  height?: number;
-}
-
-interface Section {
-  title: string;
-  description: string;
-  image: string;
-  link?: { text: string; url: string };
-  images?: ImageBlockData[];
-  titleDesc?: string;
-  descriptionDesc?: string;
-}
-
-interface BannerProps {
-  name: string;
-  title: string;
-  description: string;
-  image: string;
-  link: { text: string; url: string };
-}
-
-interface CollectionDetails {
-  id: number;
-  name: string;
-  banner: BannerProps;
-  link?: { text: string; url: string };
-  sections: Section[];
-  sections2: Section[];
-  sections3: Section[];
-  sections4: Section[];
-}
+import { useState } from 'react'
+import { updateCollectionDetail } from "@/app/actions/collections/collections-db"
+import type { CollectionDetailItem } from "@/app/types/collections"
+import CollectionDetailBanner from "@/components/collection-detail/CollectionDetailBanner"
+import CollectionDetailSection from "@/components/collection-detail/CollectionDetailSection"
+import CollectionDetailSection2 from "@/components/collection-detail/CollectionDetailSection2"
+import CollectionDetailSection3 from "@/components/collection-detail/CollectionDetailSection3"
+import CollectionDetailSection4 from "@/components/collection-detail/CollectionDetailSection4"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import { Slash } from "lucide-react"
 
 interface CollectionContentProps {
-  params: Promise<{ id: string }>;
+  initialData: CollectionDetailItem
 }
 
-export function CollectionContent({ params }: CollectionContentProps) {
-  const resolvedParams = use(params);
-  const { collectionDetails, fetchCollectionDetails } = useSections();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+export default function CollectionContent({ initialData }: CollectionContentProps) {
+  const [collection] = useState(initialData)
 
-  const loadCollection = useCallback(async () => {
-    if (!resolvedParams?.id || isInitialized) return;
-    
+  const handleTestUpdate = async () => {
     try {
-      setIsLoading(true);
-      await fetchCollectionDetails();
-      setIsInitialized(true);
-    } catch (err) {
-      console.error("Ошибка при загрузке коллекции:", err);
-      setError("Не удалось загрузить коллекцию");
-    } finally {
-      setIsLoading(false);
+      const result = await updateCollectionDetail(collection.id, collection)
+      console.log('Обновление успешно:', result)
+    } catch (error) {
+      console.error('Ошибка обновления:', error)
     }
-  }, [resolvedParams?.id, fetchCollectionDetails, isInitialized]);
-
-  useEffect(() => {
-    if (!isInitialized) {
-      loadCollection();
-    }
-  }, [loadCollection, isInitialized]);
-
-  if (isLoading) {
-    return <div>Загрузка...</div>;
   }
-
-  if (error) {
-    return <div>Ошибка: {error}</div>;
-  }
-
-  const collection = collectionDetails.find((c) => c.id === parseInt(resolvedParams.id));
-
-  if (!collection) {
-    return <div>Коллекция не найдена</div>;
-  }
-
-  const safeCollection = {
-    ...collection,
-    banner: {
-      ...collection.banner,
-      image: collection.banner?.image || '/placeholder.svg',
-    },
-    sections: collection.sections?.map(section => ({
-      ...section,
-      image: section.image || '/placeholder.svg',
-      images: section.images?.map(img => ({
-        ...img,
-        src: img.src || '/placeholder.svg'
-      })) || []
-    })) || []
-  };
 
   return (
     <>
@@ -126,17 +36,13 @@ export function CollectionContent({ params }: CollectionContentProps) {
               <BreadcrumbItem>
                 <BreadcrumbLink href="/">Главная</BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator>
-                <Slash />
-              </BreadcrumbSeparator>
+              <BreadcrumbSeparator><Slash /></BreadcrumbSeparator>
               <BreadcrumbItem>
                 <BreadcrumbLink href="/collections">Коллекции</BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator>
-                <Slash />
-              </BreadcrumbSeparator>
+              <BreadcrumbSeparator><Slash /></BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/collections/collection-detail/${resolvedParams.id}`}>
+                <BreadcrumbLink href={`/collections/collection-detail/${collection.id}`}>
                   {collection.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -144,63 +50,33 @@ export function CollectionContent({ params }: CollectionContentProps) {
           </Breadcrumb>
         </div>
       </section>
-      <CollectionDetailBanner 
-        {...safeCollection.banner} 
-        name={safeCollection.name} 
-        link={typeof safeCollection.link === 'string' 
-          ? { text: safeCollection.link, url: safeCollection.link }
-          : safeCollection.link || { text: '', url: '' }
-        } 
-      />
-      {safeCollection.sections.map((section, index) => (
-        <CollectionDetailSection 
-          key={index} 
-          {...section} 
-          reverse={index % 2 !== 0}
-          link={section.link || { text: '', url: '' }}
-          images={(section.images || []).map(img => ({
-            ...img,
-            src: img.src || '/placeholder.svg'
-          }))}
-        />
+
+      <CollectionDetailBanner {...collection.banner} name={collection.name} />
+
+      {collection.sections?.map((section, index) => (
+        <CollectionDetailSection key={index} {...section} reverse={index % 2 !== 0} />
       ))}
-      {collection.sections2.map((section, index) => (
-        <CollectionDetailSection2 
-          key={index} 
-          {...section} 
-          reverse={index % 2 !== 0}
-          titleDesc={section.titleDesc || ''}
-          descriptionDesc={section.descriptionDesc || ''}
-          link={section.link || { text: '', url: '' }}
-          images={(section.images || []).map(img => ({
-            ...img,
-            src: img.src || '/placeholder.svg'
-          }))}
-        />
+
+      {collection.sections2?.map((section, index) => (
+        <CollectionDetailSection2 key={index} {...section} />
       ))}
-      {collection.sections3.map((section, index) => (
-        <CollectionDetailSection3 
-          key={index} 
-          {...section} 
-          reverse={index % 2 !== 0}
-          link={section.link || { text: '', url: '' }}
-          images={(section.images || []).map(img => ({
-            ...img,
-            src: img.src || '/placeholder.svg'
-          }))}
-        />
+
+      {collection.sections3?.map((section, index) => (
+        <CollectionDetailSection3 key={index} {...section} />
       ))}
-      {collection.sections4.map((section, index) => (
-        <CollectionDetailSection4 
-          key={index} 
-          {...section} 
-          reverse={index % 2 !== 0}
-          images={(section.images || []).map(img => ({
-            ...img,
-            src: img.src || '/placeholder.svg'
-          }))}
-        />
+
+      {collection.sections4?.map((section, index) => (
+        <CollectionDetailSection4 key={index} {...section} />
       ))}
+
+      {process.env.NODE_ENV === 'development' && (
+        <button
+          onClick={handleTestUpdate}
+          className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded"
+        >
+          Тест обновления
+        </button>
+      )}
     </>
-  );
+  )
 }

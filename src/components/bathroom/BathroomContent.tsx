@@ -11,12 +11,23 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Slash } from "lucide-react"
+import { updateBathroomPage } from "@/app/actions/bathroom/db"
+import type { BathroomPageData } from "@/app/types/bathroom"
 
 interface BathroomContentProps {
-  initialData: any; // Замените any на правильный тип данных
+  initialData: BathroomPageData;
 }
 
 export default function BathroomContent({ initialData }: BathroomContentProps) {
+  const handleTestUpdate = async () => {
+    try {
+      const result = await updateBathroomPage(initialData)
+      console.log('Обновление успешно:', result)
+    } catch (error) {
+      console.error('Ошибка обновления:', error)
+    }
+  }
+
   return (
     <>
       <section>
@@ -49,6 +60,14 @@ export default function BathroomContent({ initialData }: BathroomContentProps) {
           <BathroomCollection {...collection} />
         </section>
       ))}
+      {process.env.NODE_ENV === 'development' && (
+        <button
+          onClick={handleTestUpdate}
+          className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded"
+        >
+          Тест обновления
+        </button>
+      )}
     </>
   )
 }

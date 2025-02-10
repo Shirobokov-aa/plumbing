@@ -3,15 +3,16 @@
 import { eq } from "drizzle-orm"
 import { collectionDetailsTable, collectionsTable, sectionsTable, bathroomPageTable, kitchenPageTable, aboutPageTable } from "./schema"
 import { db } from "."
+import type { CollectionItem } from "@/app/types/collections"
 
-const initialCollections = [
+const initialCollections: CollectionItem[] = [
   {
     id: 1,
     title: "ERA",
     desc: "Коллекция ERA воплощает гармонию современного дизайна и классических традиций...",
     image: "/img/item-era.png",
     link: "/collections/collection-detail/era",
-    flexDirection: "xl:flex-row",
+    flexDirection: "xl:flex-row" as const,
   },
   {
     id: 2,
@@ -19,7 +20,7 @@ const initialCollections = [
     desc: "Коллекция AMO - это воплощение элегантности и современного стиля...",
     image: "/img/item-amo.png",
     link: "/collections/collection-detail/amo",
-    flexDirection: "xl:flex-row-reverse",
+    flexDirection: "xl:flex-row-reverse" as const,
   },
   {
     id: 3,
@@ -402,7 +403,10 @@ async function seedSections() {
       })
       console.log("✅ Секции успешно добавлены")
     } else {
-      await db.update(sectionsTable).set({ data: initialSections }).where(eq(sectionsTable.id, existing[0].id))
+      await db
+        .update(sectionsTable)
+        .set({ data: initialSections })
+        .where(eq(sectionsTable.id, existing[0].id))
       console.log("✅ Секции успешно обновлены")
     }
   } catch (error) {
@@ -455,7 +459,7 @@ async function seedKitchenPage() {
 async function seedAboutPage() {
   try {
     const existing = await db.select().from(aboutPageTable);
-    
+
     if (existing.length === 0) {
       await db.insert(aboutPageTable).values({
         data: initialAboutPageData,
@@ -487,6 +491,19 @@ async function seed() {
   console.log("✅ База данных успешно заполнена seedKitchenPage");
   await seedAboutPage();
   console.log("✅ База данных успешно заполнена seedAboutPage");
+
+  // Проверим, что данные правильно сохраняются
+  const collections = await db.select().from(collectionsTable)
+  console.log('Данные в БД:', collections)
+
+  // Если нужно, можем пересоздать начальные данные
+  if (collections.length === 0) {
+    await db.insert(collectionsTable).values({
+      id: 1,
+      data: initialCollections
+    })
+  }
+
   process.exit(0)
 }
 

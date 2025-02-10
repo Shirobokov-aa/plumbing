@@ -1,12 +1,14 @@
+'use client'
+
 import Image from "next/image"
 import Link from "next/link"
 
 interface CollectionDetailBannerProps {
   name: string
-  image: string
+  image: string | null
   title: string
   description: string
-  link: { text: string; url: string }
+  link?: { text: string; url: string }
 }
 
 export default function CollectionDetailBanner({ name, image, title, description, link }: CollectionDetailBannerProps) {
@@ -21,13 +23,15 @@ export default function CollectionDetailBanner({ name, image, title, description
             <p className="text-lg mt-2">{description}</p>
           </div>
         </div>
-        <div className="absolute inset-0">
-          <Link href={link.url}>
-            <div className="absolute bottom-36 right-0 lg:py-9 py-7 lg:px-[150px] px-24 bg-[#1E1E1E] text-white">
-              <h2 className="lg:text-xl font-light border-b border-b-white">{link.text}</h2>
-            </div>
-          </Link>
-        </div>
+        {link && (
+          <div className="absolute inset-0">
+            <Link href={link.url}>
+              <div className="absolute bottom-36 right-0 lg:py-9 py-7 lg:px-[150px] px-24 bg-[#1E1E1E] text-white">
+                <h2 className="lg:text-xl font-light border-b border-b-white">{link.text}</h2>
+              </div>
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )
