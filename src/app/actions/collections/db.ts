@@ -10,8 +10,7 @@ import type { CollectionItem } from "@/app/types/collections"
 export async function getCollections(): Promise<CollectionItem[]> {
   try {
     const result = await db.select().from(collectionsTable).limit(1)
-    const collections = result[0]?.data
-    return Array.isArray(collections) ? collections : []
+    return result[0]?.data || []
   } catch (error) {
     console.error("Error fetching collections:", error)
     return []
@@ -87,7 +86,7 @@ export async function updateCollections(data: CollectionItem[]) {
       .where(eq(collectionsTable.id, 1))
       .returning()
 
-    revalidatePath('/')
+    revalidatePath('/collections')
     return result[0].data
   } catch (error) {
     console.error("Error updating collections:", error)

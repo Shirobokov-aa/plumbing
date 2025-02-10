@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+// import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import type { CollectionItem } from "../admin/contexts/SectionsContext"
+import { getCollections } from "@/app/actions/collections/db"
+import type { CollectionItem } from "@/app/types/collections"
 
 function CollectionCard({ item }: { item: CollectionItem }) {
   const imageSrc = item.image || "/placeholder.svg"
@@ -37,8 +38,8 @@ function CollectionCard({ item }: { item: CollectionItem }) {
   )
 }
 
-export function CollectionsList({ initialCollections }: { initialCollections: CollectionItem[] }) {
-  const [collections] = useState<CollectionItem[]>(initialCollections)
+export async function CollectionsList() {
+  const collections = await getCollections()
 
   return (
     <div className="flex flex-col gap-24 pt-24">
