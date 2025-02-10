@@ -8,17 +8,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Slash } from "lucide-react";
-import { useSections } from "@/app/admin/contexts/SectionsContext";
+import type { AboutPage } from "@/app/types/pages";
 import AboutBanner from "@/components/about/AboutBanner";
 import AboutShower from "@/components/about/AboutShower";
 
-export default function AboutContent() {
-  const { aboutPage } = useSections();
+interface AboutContentProps {
+  initialData: AboutPage;
+}
 
-  if (!aboutPage) {
-    return <div>Loading...</div>;
-  }
-
+export default function AboutContent({ initialData }: AboutContentProps) {
   return (
     <>
       <section>
@@ -39,9 +37,9 @@ export default function AboutContent() {
         </div>
       </section>
       <section>
-        <AboutBanner {...aboutPage.banner} />
+        <AboutBanner {...initialData.banner} />
       </section>
-      {aboutPage.sections.map((section, index) => (
+      {initialData.sections.map((section, index) => (
         <section key={index}>
           <AboutShower {...section} />
         </section>

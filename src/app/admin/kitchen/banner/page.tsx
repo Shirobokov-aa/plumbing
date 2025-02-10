@@ -1,22 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSections } from "../../contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
+import type { Banner } from "@/app/types/pages"
 
 export default function KitchenBannerAdminPage() {
   const { kitchenPage, updateKitchenPage } = useSections()
-  const [banner, setBanner] = useState<any>(null)
-
-  useEffect(() => {
-    if (kitchenPage?.banner) {
-      setBanner(kitchenPage.banner)
-    }
-  }, [kitchenPage])
+  const [banner, setBanner] = useState<Banner | null>(kitchenPage?.banner || null)
 
   if (!banner) {
     return <div>Loading...</div>
@@ -28,11 +23,11 @@ export default function KitchenBannerAdminPage() {
   }
 
   const handleChange = (field: string, value: string) => {
-    setBanner((prev: any) => ({ ...prev, [field]: value }))
+    setBanner((prev) => prev ? { ...prev, [field]: value } : null)
   }
 
   const handleLinkChange = (field: string, value: string) => {
-    setBanner((prev: any) => ({ ...prev, link: { ...prev.link, [field]: value } }))
+    setBanner((prev) => prev ? { ...prev, link: { ...prev.link, [field]: value } } : null)
   }
 
   return (

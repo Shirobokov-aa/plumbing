@@ -8,17 +8,16 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Slash } from "lucide-react";
-import { useSections } from "@/app/admin/contexts/SectionsContext";
-import KitchenCollection from "@/components/kitchen/KitchenCollection";
+import type { KitchenPage } from "@/app/types/pages";
 import KitchenBanner from "@/components/kitchen/KitchenBanner";
 import KitchenShower from "@/components/kitchen/KitchenShower";
 
-export default function KitchenContent() {
-  const { kitchenPage } = useSections();
+interface KitchenContentProps {
+  initialData: KitchenPage | null;
+}
 
-  if (!kitchenPage) {
-    return <div>Loading...</div>;
-  }
+export default function KitchenContent({ initialData }: KitchenContentProps) {
+  if (!initialData) return null;
 
   return (
     <>
@@ -40,18 +39,13 @@ export default function KitchenContent() {
         </div>
       </section>
       <section>
-        <KitchenBanner {...kitchenPage.banner} />
+        <KitchenBanner {...initialData.banner} />
       </section>
-      {kitchenPage.sections?.map((section, index) => (
+      {initialData.sections?.map((section, index) => (
         <section key={index}>
           <KitchenShower {...section} />
         </section>
       ))}
-      {/* {kitchenPage.collections?.map((collection, index) => (
-        <section key={index}>
-          <KitchenCollection {...collection} />
-        </section>
-      ))} */}
     </>
   );
 }

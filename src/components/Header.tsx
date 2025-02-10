@@ -4,24 +4,21 @@ import Link from "next/link"
 import { Search, Menu, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import HoverMenu from "./HoverMenu"
-import { useSections } from "@/app/admin/contexts/SectionsContext"
+import type { CollectionDetail } from "@/app/types/collections"
 
 interface HeaderProps {
   defaultTextColor?: string
   activeTextColor?: string
+  collectionDetails: CollectionDetail[]
 }
 
-
-
-export default function Header({ defaultTextColor = "text-white", activeTextColor = "text-black" }: HeaderProps) {
+export default function Header({ defaultTextColor = "text-white", activeTextColor = "text-black", collectionDetails = [] }: HeaderProps) {
   const [isVisible, setIsVisible] = useState(true)
   const [isAtTop, setIsAtTop] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isMenuLocked, setIsMenuLocked] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-  const { collectionDetails } = useSections()
 
   const categories = [
   {

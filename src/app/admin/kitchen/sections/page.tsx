@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSections } from "../../contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,29 +8,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-interface Section {
-  title: string;
-  description: string;
-  link: {
-    text: string;
-    url: string;
-  };
-  images: {
-    src: string;
-    alt: string;
-  }[];
-}
+import type { Section } from "@/app/types/sections"
 
 export default function KitchenSectionsAdminPage() {
   const { kitchenPage, updateKitchenPage } = useSections()
-  const [sections, setSections] = useState<Section[]>([])
-
-  useEffect(() => {
-    if (kitchenPage?.sections) {
-      setSections(kitchenPage.sections)
-    }
-  }, [kitchenPage])
+  const [sections, setSections] = useState<Section[]>(kitchenPage?.sections || [])
 
   if (!sections.length) {
     return <div>Loading...</div>
@@ -60,7 +42,7 @@ export default function KitchenSectionsAdminPage() {
     })
   }
 
-  const handleImageChange = async (sectionIndex: number, imageIndex: number, file: File) => {
+  const handleImageChange = (sectionIndex: number, imageIndex: number, file: File) => {
     const reader = new FileReader()
     reader.onloadend = () => {
       setSections((prev) => {

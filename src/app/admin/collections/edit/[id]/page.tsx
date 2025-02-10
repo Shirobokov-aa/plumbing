@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { use } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSections } from "@/app/admin/contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
@@ -12,34 +11,15 @@ import Image from "next/image"
 import SectionEditor from "@/components/admin/collection-detail/SectionEditor"
 import type { CollectionDetail, Section, ImageData } from "@/app/types/collections"
 
-export default function EditCollectionPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditCollectionPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const { collections = [], collectionDetails = [], updateCollectionDetail } = useSections()
-  const [collectionDetail, setCollectionDetail] = useState<CollectionDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { collectionDetails = [], updateCollectionDetail } = useSections()
 
-  const resolvedParams = use(params)
+  const foundCollectionDetail = collectionDetails.find(
+    (detail) => detail.id === parseInt(params.id)
+  )
 
-  useEffect(() => {
-    if (!collectionDetails || collectionDetails.length === 0) {
-      return; // Ждем загрузки данных
-    }
-
-    const foundCollectionDetail = collectionDetails.find(
-      (detail) => detail.id === parseInt(resolvedParams.id)
-    )
-
-    if (foundCollectionDetail) {
-      setCollectionDetail(foundCollectionDetail as CollectionDetail)
-    } else {
-      console.error("Коллекция не найдена")
-    }
-    setIsLoading(false)
-  }, [resolvedParams.id, collections, collectionDetails])
-
-  if (isLoading) {
-    return <div>Загрузка...</div>
-  }
+  const [collectionDetail, setCollectionDetail] = useState<CollectionDetail | null>(foundCollectionDetail || null)
 
   if (!collectionDetail) {
     return <div>Коллекция не найдена</div>
@@ -82,7 +62,7 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
 
       console.log('Saving collection:', collectionDetail); // Для отладки
 
-      const response = await updateCollectionDetail(parseInt(resolvedParams.id), {
+      const response = await updateCollectionDetail(parseInt(params.id), {
         ...collectionDetail,
         banner: {
           ...collectionDetail.banner,

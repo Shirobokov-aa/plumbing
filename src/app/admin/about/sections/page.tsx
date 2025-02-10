@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSections } from "../../contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,13 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AboutSectionsAdminPage() {
   const { aboutPage, updateAboutPage } = useSections()
-  const [sections, setSections] = useState<any[]>([])
-
-  useEffect(() => {
-    if (aboutPage?.sections) {
-      setSections(aboutPage.sections)
-    }
-  }, [aboutPage])
+  const [sections, setSections] = useState(aboutPage?.sections || [])
 
   if (!sections.length) {
     return <div>Loading...</div>

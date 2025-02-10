@@ -4,10 +4,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Inter } from 'next/font/google';
 import { Providers } from "./providers";
 import "./globals.css";
+import HeaderWithData from "@/components/HeaderWithData"
+import { SectionsProvider } from './admin/contexts/SectionsContext'
+import { getInitialData } from '@/app/actions/sections/getData'
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '700'],
   variable: '--font-inter',
 });
 
@@ -28,15 +30,18 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
+  const initialData = await getInitialData()
+
   return (
     <html lang="en" className={inter.variable}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Providers>{children}</Providers>
+      <body className="antialiased">
+        <SectionsProvider initialData={initialData}>
+          <HeaderWithData />
+          {children}
+        </SectionsProvider>
       </body>
     </html>
   );

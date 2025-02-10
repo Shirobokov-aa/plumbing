@@ -23,7 +23,7 @@ export default function CollectionCard({ item }: { item: CollectionItem }) {
         </div>
         <div className="xl:pt-0 pt-10">
           <Link
-            href={`/collections/collection-detail/${item.id}`}
+            href={`/collections/${item.slug}`}
             className="text-desc border-b border-black"
           >
             Посмотреть

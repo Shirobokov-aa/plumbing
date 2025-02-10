@@ -43,7 +43,7 @@ export default function MainSection1Page() {
           name: sections['section-1'].link?.name || "",
           url: sections['section-1'].link?.url || ""
         },
-        images: sections['section-1'].images?.map(img => 
+        images: sections['section-1'].images?.map(img =>
           typeof img === 'string' ? { src: img, alt: 'Image' } : img
         ) || []
       })

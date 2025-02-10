@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+// import { redirect } from "next/navigation"
 // import Image from "next/image"
 
 export default async function CollectionsPage() {
   const collections = await getCollections()
+
 
   return (
     <div>

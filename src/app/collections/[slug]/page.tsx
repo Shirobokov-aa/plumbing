@@ -1,16 +1,25 @@
 import { getCollectionDetailBySlug } from "@/app/actions/collection-details/db"
-import CollectionDetail from "@/components/collections/CollectionDetail"
+import Header from "@/components/Header"
+import Footer from "@/components/Footer"
+import CollectionContent from "./CollectionContent"
+import { notFound } from "next/navigation"
 
 export default async function CollectionDetailPage({
-  params: { slug }
+  params
 }: {
   params: { slug: string }
 }) {
-  const collectionDetail = await getCollectionDetailBySlug(slug)
+  const collection = await getCollectionDetailBySlug(params.slug)
 
-  if (!collectionDetail) {
-    return <div>Коллекция не найдена</div>
+  if (!collection) {
+    notFound()
   }
 
-  return <CollectionDetail collection={collectionDetail} />
+  return (
+    <div>
+      <Header defaultTextColor="text-black" activeTextColor="text-black" />
+      <CollectionContent initialData={collection} />
+      <Footer />
+    </div>
+  )
 }

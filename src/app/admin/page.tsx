@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { login } from "@/app/actions/auth/auth-db"
 
 interface LoginForm {
   email: string
@@ -28,18 +29,14 @@ export default function AdminLoginPage() {
     setError(null)
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
+      const result = await login(data)
 
-      if (response.ok) {
-        router.push("/admin")
+      if (result.success) {
+        router.push("/admin/main")
+        router.refresh()
       } else {
-        setError("Неверный email или пароль")
+        setError(result.error)
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError("Произошла ошибка при входе")
     } finally {
@@ -69,7 +66,11 @@ export default function AdminLoginPage() {
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Пароль</Label>
-                <Input id="password" type="password" {...register("password", { required: "Пароль обязателен" })} />
+                <Input
+                  id="password"
+                  type="password"
+                  {...register("password", { required: "Пароль обязателен" })}
+                />
                 {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
               </div>
             </div>

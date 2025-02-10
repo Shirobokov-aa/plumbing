@@ -5,6 +5,7 @@ import { collectionDetailsTable } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import type { CollectionDetail } from "@/app/types/collections"
+import type { CollectionDetailItem } from "@/app/types/collections"
 
 export async function getCollectionDetails(): Promise<CollectionDetail[]> {
   try {
@@ -32,13 +33,30 @@ export async function updateCollectionDetails(data: CollectionDetail[]) {
   }
 }
 
-export async function getCollectionDetailBySlug(slug: string): Promise<CollectionDetail | null> {
+export async function getCollectionDetailBySlug(slug: string): Promise<CollectionDetailItem | null> {
   try {
-    const result = await db.select().from(collectionDetailsTable).limit(1)
-    const details = result[0]?.data as CollectionDetail[]
-    return details.find(item => item.name === slug) || null
+    const result = await db.select().from(collectionDetailsTable)
+      .where(eq(collectionDetailsTable.slug, slug))
+      .limit(1)
+    return result[0] || null
   } catch (error) {
     console.error("Error fetching collection detail:", error)
     return null
+  }
+}
+
+export async function updateCollectionDetail(id: string, data: CollectionDetailItem) {
+  try {
+    const result = await db
+      .update(collectionDetailsTable)
+      .set(data)
+      .where(eq(collectionDetailsTable.id, id))
+      .returning()
+
+    revalidatePath(`/collections/${data.slug}`)
+    return result[0]
+  } catch (error) {
+    console.error("Error updating collection detail:", error)
+    throw error
   }
 }

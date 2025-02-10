@@ -9,8 +9,7 @@ import type { BathroomPage } from "@/app/types/pages"
 export async function getBathroomPage(): Promise<BathroomPage | null> {
   try {
     const result = await db.select().from(bathroomPageTable).limit(1)
-    const data = result[0]?.data as BathroomPage
-    return data || null
+    return result[0]?.data || null
   } catch (error) {
     console.error("Error fetching bathroom page:", error)
     return null

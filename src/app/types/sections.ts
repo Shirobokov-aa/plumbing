@@ -13,16 +13,30 @@ interface ImageBlockItem {
 }
 
 export interface Section {
-  title?: string;
-  description?: string;
-  link?: {
-    name: string;
+  title: string;
+  description: string;
+  link: {
+    text: string;
     url: string;
   };
-  images?: (string | ImageObject)[];
+  images: {
+    src: string;
+    alt: string;
+  }[];
   images_block?: ImageBlockItem[];
 }
 
 export interface SectionsData {
   [key: string]: Section;
+}
+
+export interface SectionItem {
+  title: string;
+  description: string;
+  image: string;
+  reverse?: boolean;
+}
+
+export interface SectionsData {
+  sections: SectionItem[];
 }

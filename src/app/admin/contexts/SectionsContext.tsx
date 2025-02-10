@@ -3,7 +3,7 @@
 import { createContext, useContext, useState } from "react"
 import { Alert } from "@/components/ui/alert"
 import { updateSections } from '@/app/actions/sections/db'
-import { updateCollections as updateCollectionsAction, getCollections } from '@/app/actions/collections/db'
+import { updateCollections as updateCollectionsAction } from '@/app/actions/collections/db'
 import { updateBathroomPage } from '@/app/actions/bathroom/db'
 import { updateKitchenPage } from '@/app/actions/kitchen/db'
 import { updateAboutPage } from '@/app/actions/about/db'
@@ -58,15 +58,6 @@ export function SectionsProvider({ children, initialData }: SectionsProviderProp
   const [aboutPage, setAboutPage] = useState<AboutPage | null>(null)
   const [collectionDetails, setCollectionDetails] = useState<CollectionDetail[]>([])
 
-  const loadCollections = async () => {
-    const data = await getCollections()
-    setCollections(data)
-  }
-
-  if (collections.length === 0) {
-    loadCollections()
-  }
-
   const updateSection = async (sectionName: string, data: SectionsData[keyof SectionsData]) => {
     try {
       const updatedSections = { ...sections, [sectionName]: data }
@@ -79,17 +70,17 @@ export function SectionsProvider({ children, initialData }: SectionsProviderProp
     }
   }
 
-  const updateCollections = async (newCollections: CollectionItem[]) => {
-    try {
-      await updateCollectionsAction(newCollections)
-      setCollections(newCollections)
-      setAlert({ type: 'success', message: 'Коллекции успешно обновлены' })
-    } catch (error) {
-      console.error('Error updating collections:', error)
-      setAlert({ type: 'error', message: 'Ошибка при обновлении коллекций' })
-      throw error
-    }
-  }
+  // const updateCollections = async (newCollections: CollectionItem[]) => {
+  //   try {
+  //     await updateCollectionsAction(newCollections)
+  //     setCollections(newCollections)
+  //     setAlert({ type: 'success', message: 'Коллекции успешно обновлены' })
+  //   } catch (error) {
+  //     console.error('Error updating collections:', error)
+  //     setAlert({ type: 'error', message: 'Ошибка при обновлении коллекций' })
+  //     throw error
+  //   }
+  // }
 
   const updateBathroomPageData = async (newData: BathroomPage) => {
     try {
@@ -149,7 +140,7 @@ export function SectionsProvider({ children, initialData }: SectionsProviderProp
         updateSection,
         updateCollections: async (newData) => {
           try {
-            await updateCollections(newData)
+            await updateCollectionsAction(newData)
             setCollections(newData)
             setAlert({ type: 'success', message: 'Коллекции обновлены' })
           } catch (err) {

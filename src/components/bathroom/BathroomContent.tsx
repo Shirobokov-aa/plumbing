@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Slash } from "lucide-react"
 import { updateBathroomPage } from "@/app/actions/bathroom/db"
-import type { BathroomPageData } from "@/app/types/bathroom"
+import type { BathroomPageData } from "@/app/types/pages"
+import type { SectionItem } from "@/app/types/sections"
 
 interface BathroomContentProps {
   initialData: BathroomPageData;
@@ -50,16 +51,18 @@ export default function BathroomContent({ initialData }: BathroomContentProps) {
       <section>
         <BathroomBanner {...initialData.banner} />
       </section>
-      {initialData.sections.map((section: any, index: number) => (
+      {initialData.sections.map((section: SectionItem, index: number) => (
         <section key={index}>
           <BathShower {...section} />
         </section>
       ))}
-      {initialData.collections.map((collection: any, index: number) => (
+
+      {initialData.collections.map((collection: CollectionItem, index: number) => (
         <section key={index}>
           <BathroomCollection {...collection} />
         </section>
       ))}
+
       {process.env.NODE_ENV === 'development' && (
         <button
           onClick={handleTestUpdate}

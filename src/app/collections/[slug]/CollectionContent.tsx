@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useState } from 'react'
 import { updateCollectionDetail } from "@/app/actions/collections/collections-db"
@@ -42,7 +42,7 @@ export default function CollectionContent({ initialData }: CollectionContentProp
               </BreadcrumbItem>
               <BreadcrumbSeparator><Slash /></BreadcrumbSeparator>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/collections/collection-detail/${collection.id}`}>
+                <BreadcrumbLink href={`/collections/${collection.slug}`}>
                   {collection.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>

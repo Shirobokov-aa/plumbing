@@ -1,3 +1,14 @@
+export interface Banner {
+  name: string;
+  title: string;
+  description: string;
+  image: string;
+  link: {
+    text: string;
+    url: string;
+  };
+}
+
 export interface BathroomPage {
   banner: {
     name: string;
@@ -43,13 +54,7 @@ export interface KitchenPage {
 }
 
 export interface AboutPage {
-  banner: {
-    name: string;
-    image: string;
-    title: string;
-    description: string;
-    link: { text: string; url: string };
-  };
+  banner: Banner;
   sections: Array<{
     title: string;
     description: string;
