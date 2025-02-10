@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const collections = await db.select().from(collectionsTable)
       let data = collections.length > 0 ? collections[0].data : []
-      
+
       // Проверяем и форматируем данные
       if (Array.isArray(data)) {
         data = data.map(item => ({
@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           id: Number(item.id)
         }))
       }
-      
+
       res.status(200).json(data)
     } catch (error) {
       console.error("Error fetching collections:", error)
@@ -59,9 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ data: result[0].data })
     } catch (error) {
+      console.error("Error updating collections:", error)
       res.status(500).json({ error: "Failed to update collections" })
     }
   } else {
     res.status(405).json({ message: "Method not allowed" })
-  } 
+  }
 }

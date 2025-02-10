@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { db } from "@/db/index"
 import { collectionsTable } from "@/db/schema"
 import { eq } from "drizzle-orm"
+import { CollectionItem } from "@/app/admin/contexts/SectionsContext"
 
 export const config = {
   api: {
@@ -23,39 +24,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .limit(1)
       if (collection.length > 0) {
         // Проверяем и форматируем данные
-        const data = collection[0].data as {
-          image?: string;
-          banner?: {
-            image?: string;
-            [key: string]: any;
-          };
-          [key: string]: any;
-        };
-        
+        const data = collection[0].data as CollectionItem;
+
         const formattedData = typeof data === 'object' && data !== null ? {
           ...data,
           image: data.image || null,
-          banner: {
-            ...data.banner,
-            image: data.banner?.image || null
-          },
-          sections: (data.sections || []).map((section: any) => ({
-            ...section,
-            image: section.image || null,
-            images: (section.images || []).map((img: any) => ({
-              ...img,
-              src: img.src || null
-            }))
-          }))
+          id: Number(id),
+          title: data.title || '',
+          desc: data.desc || '',
+          flexDirection: data.flexDirection || 'xl:flex-row'
         } : {};
-        
+
         res.status(200).json(formattedData);
       } else {
         res.status(404).json({ message: "Collection not found" })
       }
     } else if (req.method === "PUT") {
       const { data } = req.body
-      
+
       // Проверяем существование записи
       const existing = await db
         .select()

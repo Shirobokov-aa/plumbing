@@ -17,9 +17,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ message: "Внутренняя ошибка сервера" })
     }
   } else if (req.method === "PUT") {
-    const { data } = req.body
-    await db.update(kitchenPageTable).set({ data })
-    res.status(200).json({ message: "Kitchen page updated successfully" })
+    try {
+      const { data } = req.body
+      await db.update(kitchenPageTable)
+        .set({ data })
+        .where(eq(kitchenPageTable.id, 1))
+      res.status(200).json({ message: "Kitchen page updated successfully" })
+    } catch (error) {
+      console.error("Ошибка обновления данных:", error)
+      res.status(500).json({ message: "Внутренняя ошибка сервера" })
+    }
   } else {
     res.status(405).json({ message: "Method not allowed" })
   }

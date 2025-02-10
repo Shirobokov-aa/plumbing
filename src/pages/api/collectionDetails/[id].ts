@@ -1,3 +1,4 @@
+import type { CollectionDetailItem } from "@/app/admin/contexts/SectionsContext"
 import type { NextApiRequest, NextApiResponse } from "next"
 import { db } from "@/db/index"
 import { collectionDetailsTable } from "@/db/schema"
@@ -15,13 +16,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .limit(1)
 
       if (collectionDetail.length > 0) {
-        res.status(200).json(collectionDetail[0].data)
+        const data = collectionDetail[0].data as CollectionDetailItem;
+
+        const formattedData = typeof data === 'object' && data !== null ? {
+          ...data,
+          id: Number(id),
+          banner: {
+            ...data.banner,
+            image: data.banner?.image || null,
+            link: data.banner?.link || { text: '', url: '' }
+          },
+          sections: data.sections?.map(section => ({
+            ...section,
+            image: section.image || null,
+            link: section.link || { text: '', url: '' }
+          })) || [],
+          sections2: data.sections2?.map(section => ({
+            ...section,
+            image: section.image || null,
+            link: section.link || { text: '', url: '' }
+          })) || [],
+          sections3: data.sections3?.map(section => ({
+            ...section,
+            image: section.image || null,
+            link: section.link || { text: '', url: '' }
+          })) || [],
+          sections4: data.sections4?.map(section => ({
+            ...section,
+            image: section.image || null
+          })) || []
+        } : {};
+
+        res.status(200).json(formattedData)
       } else {
         res.status(404).json({ message: "Collection detail not found" })
       }
     } else if (req.method === "PUT") {
       const { data } = req.body
-      
+
       // Проверяем существование записи
       let result = await db
         .update(collectionDetailsTable)

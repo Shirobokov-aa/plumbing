@@ -3,8 +3,8 @@
 import type React from "react";
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { Alert } from "@/components/ui/alert"
-import { db } from '@/db';
-import { sectionsTable } from '@/db/schema';
+// import { db } from '@/db';
+// import { sectionsTable } from '@/db/schema';
 // import type { BathroomPage } from "../types"
 
 
@@ -115,53 +115,47 @@ export interface CollectionItem {
   id: number;
   title: string;
   desc: string;
-  link: string;
   image: string | null;
-  flexDirection: "xl:flex-row" | "xl:flex-row-reverse";
+  flexDirection: string;
 }
 
 export interface CollectionDetailItem {
   id: number;
   name: string;
-  link?: string;
   banner: {
     title: string;
     description: string;
     image: string | null;
+    link?: { text: string; url: string };
   };
   sections: Array<{
     title: string;
     description: string;
     image: string | null;
     link?: { text: string; url: string };
-    images?: Array<{ src: string | null; alt: string }>;
+    images?: ImageBlockData[];
   }>;
   sections2: Array<{
     title: string;
     description: string;
     image: string | null;
-    link?: { text: string; url: string };
-    images?: Array<{ src: string | null; alt: string }>;
     titleDesc?: string;
     descriptionDesc?: string;
+    link?: { text: string; url: string };
+    images?: ImageBlockData[];
   }>;
   sections3: Array<{
     title: string;
     description: string;
     image: string | null;
     link?: { text: string; url: string };
-    images?: Array<{ src: string | null; alt: string }>;
-    titleDesc?: string;
-    descriptionDesc?: string;
+    images?: ImageBlockData[];
   }>;
   sections4: Array<{
     title: string;
     description: string;
     image: string | null;
-    link?: { text: string; url: string };
-    images?: Array<{ src: string | null; alt: string }>;
-    titleDesc?: string;
-    descriptionDesc?: string;
+    images?: ImageBlockData[];
   }>;
 }
 
@@ -177,8 +171,8 @@ interface SectionsContextType {
   bathroomPage: BathroomPage | null
   kitchenPage: KitchenPage;
   aboutPage: AboutPage;
-  
-  updateSection: (sectionName: string, data: any) => Promise<void>;
+
+  updateSection: (sectionName: string, data: Record<string, unknown>) => Promise<void>;
   updateCollections: (newCollections: CollectionItem[], isEdit?: boolean) => Promise<void>;
   updateCollectionDetails: (newDetails: CollectionDetailItem[], isEdit?: boolean) => Promise<void>;
   updateBathroomPage: (newData: BathroomPage) => void;
@@ -187,8 +181,9 @@ interface SectionsContextType {
   fetchCollections: () => Promise<void>;
   fetchCollectionDetails: () => Promise<void>;
   fetchAboutPage: () => Promise<void>;
-  updateCollectionDetail: (id: number, data: any) => Promise<void>;
+  updateCollectionDetail: (id: number, data: Omit<CollectionDetailItem, 'id'>) => Promise<void>;
   deleteCollection: (id: number) => Promise<void>;
+
 
   isLoading: boolean;
   error: string | null;
@@ -199,14 +194,14 @@ export const SectionsContext = createContext<SectionsContextType | null>(null)
 export const SectionsProvider = ({ children }: { children: React.ReactNode }) => {
   const [collections, setCollections] = useState<CollectionItem[]>([]);
   const [collectionDetails, setCollectionDetails] = useState<CollectionDetailItem[]>([]);
-  const [isCollectionDetailsInitialized, setIsCollectionDetailsInitialized] = useState(false);
+  // const [isCollectionDetailsInitialized, setIsCollectionDetailsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchCollections = useCallback(async () => {
     if (isLoading || isInitialized) return;
-    
+
     try {
       setIsLoading(true);
       const response = await fetch('/api/collections', {
@@ -270,14 +265,14 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
     try {
       console.log("Загрузка секций...");
       const response = await fetch('/api/sections');
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log("Получены данные секций:", data);
-      
+
       if (data && typeof data === 'object') {
         setSections(data);
         console.log("Секции успешно обновлены");
@@ -291,10 +286,10 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
     loadSections();
   }, [loadSections]);
 
-  const updateSection = async (sectionName: string, data: any) => {
+  const updateSection = async (sectionName: string, data: Record<string, unknown>) => {
     try {
       console.log('Отправляем данные на сервер:', { sectionName, data });
-      
+
       const response = await fetch('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -309,15 +304,15 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
 
       const updatedData = await response.json();
       console.log('Получены обновленные данные:', updatedData);
-      
+
       // Обновляем состояние новыми данными
       setSections(updatedData);
-      
+
       // Добавим небольшую задержку перед перезагрузкой
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // Принудительно очищаем кэш перед загрузкой
-      const response2 = await fetch('/api/sections', { 
+      const response2 = await fetch('/api/sections', {
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache' }
       });
@@ -376,9 +371,9 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
           'Pragma': 'no-cache'
         }
       });
-      
+
       if (!response.ok) throw new Error('Failed to fetch collection details');
-      
+
       const data = await response.json();
       setCollectionDetails(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -391,6 +386,7 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
 
   useEffect(() => {
     fetchCollectionDetails();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [bathroomPage, setBathroomPage] = useState<BathroomPage>({
@@ -521,16 +517,16 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: newData }),
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Ошибка обновления: ${errorText}`);
       }
-  
+
       // Получаем обновленные данные с сервера
       const updatedData = await response.json();
       setBathroomPage(updatedData.data); // Обновляем состояние актуальными данными
-  
+
       setAlert({
         message: 'Страница ванной успешно обновлена',
         type: 'success'
@@ -637,7 +633,7 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
     fetchAboutPage();
   }, []);
 
-  const updateAboutPage = async (newData: any) => {
+  const updateAboutPage = async (newData: AboutPage) => {
     try {
       const response = await fetch('/api/aboutPage', {
         method: 'PUT',
@@ -653,10 +649,10 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
 
       const updatedData = await response.json();
       setAboutPage(updatedData.data);
-      
+
       // После успешного обновления, перезагружаем данные
       await fetchAboutPage();
-      
+
       setAlert({
         message: 'Страница О компании успешно обновлена',
         type: 'success'
@@ -670,51 +666,51 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
-  const compressImage = async (base64String: string, maxWidth = 1200, quality = 0.7): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = base64String;
-      
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        let width = img.width;
-        let height = img.height;
-        
-        // Сохраняем пропорции при изменении размера
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        ctx?.drawImage(img, 0, 0, width, height);
-        
-        // Определяем формат изображения из base64String
-        const isPNG = base64String.includes('data:image/png');
-        
-        // Используем соответствующий формат при сжатии
-        const compressedBase64 = canvas.toDataURL(
-          isPNG ? 'image/png' : 'image/jpeg', 
-          quality
-        );
-        
-        resolve(compressedBase64);
-      };
-      
-      img.onerror = (error) => {
-        console.error('Error loading image:', error);
-        reject(error);
-      };
-    });
-  };
+  // const compressImage = async (base64String: string, maxWidth = 1200, quality = 0.7): Promise<string> => {
+  //   return new Promise((resolve, reject) => {
+  //     const img = new Image();
+  //     img.src = base64String;
 
-  const updateCollectionDetail = async (id: number, data: any) => {
+  //     img.onload = () => {
+  //       const canvas = document.createElement('canvas');
+  //       const ctx = canvas.getContext('2d');
+
+  //       let width = img.width;
+  //       let height = img.height;
+
+  //       // Сохраняем пропорции при изменении размера
+  //       if (width > maxWidth) {
+  //         height = (height * maxWidth) / width;
+  //         width = maxWidth;
+  //       }
+
+  //       canvas.width = width;
+  //       canvas.height = height;
+
+  //       ctx?.drawImage(img, 0, 0, width, height);
+
+  //       // Определяем формат изображения из base64String
+  //       const isPNG = base64String.includes('data:image/png');
+
+  //       // Используем соответствующий формат при сжатии
+  //       const compressedBase64 = canvas.toDataURL(
+  //         isPNG ? 'image/png' : 'image/jpeg',
+  //         quality
+  //       );
+
+  //       resolve(compressedBase64);
+  //     };
+
+  //     img.onerror = (error) => {
+  //       console.error('Error loading image:', error);
+  //       reject(error);
+  //     };
+  //   });
+  // };
+
+  const updateCollectionDetail = async (id: number, data: Omit<CollectionDetailItem, 'id'>) => {
     try {
-      console.log('Updating collection detail:', { id, data }); // Логируем входные данные
+      console.log('Updating collection detail:', { id, data });
 
       // Обновляем детали коллекции
       const detailResponse = await fetch(`/api/collectionDetails/${id}`, {
@@ -752,11 +748,11 @@ export const SectionsProvider = ({ children }: { children: React.ReactNode }) =>
       }
 
       // Обновляем локальное состояние
-      setCollectionDetails(prev => 
+      setCollectionDetails(prev =>
         prev.map(detail => detail.id === id ? { ...detail, ...data } : detail)
       );
 
-      setCollections(prev => 
+      setCollections(prev =>
         prev.map(collection => collection.id === id ? { ...collection, ...collectionData } : collection)
       );
 
