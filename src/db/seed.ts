@@ -5,7 +5,7 @@ import { collectionDetailsTable, collectionsTable, sectionsTable, bathroomPageTa
 import { db } from "."
 import type { CollectionItem } from "@/app/types/collections"
 
-export const initialCollections: CollectionItem[] = [
+const initialCollections: CollectionItem[] = [
   {
     id: 1,
     title: "ERA",

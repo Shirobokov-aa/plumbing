@@ -5,7 +5,7 @@ import type { BathroomPage, KitchenPage, AboutPage } from "@/app/types/pages"
 
 export const collectionsTable = pgTable("collections", {
   id: serial("id").primaryKey(),
-  data: jsonb("data").$type<CollectionItem[]>()
+  data: jsonb("data").$type<CollectionItem[]>(),
 })
 
 export const sectionsTable = pgTable("sections", {
@@ -14,9 +14,9 @@ export const sectionsTable = pgTable("sections", {
   data: jsonb("data").$type<SectionsData>(),
 })
 
-export const collectionDetailsTable = pgTable("collection_details", {
-  id: serial("id").primaryKey(),
-  data: jsonb("data").$type<CollectionDetail[]>()
+export const collectionDetailsTable = pgTable('collection_details', {
+  id: serial('id').primaryKey(),
+  data: jsonb('data').$type<CollectionDetail[]>(),
 })
 
 export const bathroomPageTable = pgTable('bathroom_page', {

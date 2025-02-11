@@ -10,12 +10,14 @@ export interface CollectionItem {
 export interface ImageData {
   src: string | null;
   alt?: string;
+  desc?: string;
+  url?: string;
 }
 
 export interface Section {
   title: string;
   description: string;
-  image: string | null;
+  image?: string | null;
   images?: ImageData[];
 }
 
@@ -26,10 +28,7 @@ export interface CollectionDetail {
     title: string;
     description: string;
     image: string | null;
-    link: {
-      text: string;
-      url: string;
-    };
+    link?: { text: string; url: string };
   };
   sections: Section[];
   sections2: Section[];
@@ -42,11 +41,4 @@ export interface ImageBlockData {
   alt: string;
   desc?: string;
   url?: string;
-}
-
-export interface Collection {
-  id: number;
-  name: string;
-  description?: string;
-  detail?: CollectionDetail;
 }

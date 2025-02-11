@@ -9,19 +9,17 @@ import type { CollectionItem } from "@/app/types/collections"
 export async function getInitialData() {
   try {
     const sections = await db.select().from(sectionsTable).limit(1)
-    const collections = await db
-      .select({
-        id: collectionsTable.id,
-        data: collectionsTable.data
-      })
-      .from(collectionsTable)
+    const collections = await db.select().from(collectionsTable)
 
     return {
       sections: sections[0]?.data as SectionsData || {},
-      collections: collections[0]?.data as CollectionItem[] || []
+      collections: collections as CollectionItem[] || []
     }
   } catch (error) {
     console.error("Error fetching initial data:", error)
-    throw error
+    return {
+      sections: {},
+      collections: []
+    }
   }
 }

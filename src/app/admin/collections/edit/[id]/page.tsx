@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSections } from "@/app/admin/contexts/SectionsContext"
 import { Button } from "@/components/ui/button"
@@ -9,26 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import SectionEditor from "@/components/admin/collection-detail/SectionEditor"
-import type { CollectionDetail, Section, ImageData, Collection } from "@/app/types/collections"
-import { getCollectionById, updateCollection } from "@/app/actions/collections/db"
+import type { CollectionDetail, Section, ImageData } from "@/app/types/collections"
 
 export default function EditCollectionPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { collectionDetails = [], updateCollectionDetail } = useSections()
-  const [collection, setCollection] = useState<Collection | null>(null)
-
-  useEffect(() => {
-    const fetchCollection = async () => {
-      try {
-        const data = await getCollectionById(parseInt(params.id))
-        setCollection(data)
-      } catch (error) {
-        console.error('Error fetching collection:', error)
-      }
-    }
-
-    fetchCollection()
-  }, [params.id])
 
   const foundCollectionDetail = collectionDetails.find(
     (detail) => detail.id === parseInt(params.id)
@@ -36,8 +21,8 @@ export default function EditCollectionPage({ params }: { params: { id: string } 
 
   const [collectionDetail, setCollectionDetail] = useState<CollectionDetail | null>(foundCollectionDetail || null)
 
-  if (!collection) {
-    return <div className="p-6">Загрузка...</div>
+  if (!collectionDetail) {
+    return <div>Коллекция не найдена</div>
   }
 
   const handleBannerChange = (field: string, value: string) => {
@@ -125,53 +110,117 @@ export default function EditCollectionPage({ params }: { params: { id: string } 
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (!collection) return
-      await updateCollection(parseInt(params.id), collection)
-      router.push('/admin/collections')
-      router.refresh()
-    } catch (error) {
-      console.error('Error updating collection:', error)
-    }
-  }
-
   return (
-    <div className="container p-6">
-      <h1 className="text-2xl font-bold mb-6">Редактировать коллекцию</h1>
+    <div className="space-y-6 p-6">
+      <h1 className="text-3xl font-bold">Редактирование коллекции {collectionDetail.name}</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-        <div className="space-y-2">
-          <Label htmlFor="name">Название коллекции</Label>
-          <Input
-            id="name"
-            value={collection.name}
-            onChange={(e) => setCollection(prev => ({ ...prev!, name: e.target.value }))}
-            required
-          />
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <h2 className="text-2xl font-bold mb-4">Основная информация</h2>
+        <div className="space-y-4">
+          <div>
+            <Label>Детальное название</Label>
+            <Input
+              value={collectionDetail.name}
+              onChange={(e) => setCollectionDetail(prev => ({
+                ...prev!,
+                name: e.target.value
+              }))}
+            />
+          </div>
         </div>
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="description">Описание</Label>
-          <Textarea
-            id="description"
-            value={collection.description}
-            onChange={(e) => setCollection(prev => ({ ...prev!, description: e.target.value }))}
-          />
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <h2 className="text-2xl font-bold mb-4">Баннер</h2>
+        <div className="space-y-4">
+          <div>
+            <Label>Заголовок</Label>
+            <Input
+              value={collectionDetail.banner.title}
+              onChange={(e) => handleBannerChange("title", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Описание</Label>
+            <Textarea
+              value={collectionDetail.banner.description}
+              onChange={(e) => handleBannerChange("description", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Изображение баннера</Label>
+            {collectionDetail.banner.image && (
+              <Image
+                src={collectionDetail.banner.image}
+                alt="Banner"
+                width={300}
+                height={150}
+                className="mt-2"
+              />
+            )}
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  const reader = new FileReader()
+                  reader.onloadend = () => {
+                    handleBannerChange("image", reader.result as string)
+                  }
+                  reader.readAsDataURL(file)
+                }
+              }}
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label>Текст ссылки</Label>
+            <Input
+              value={collectionDetail.banner.link?.text}
+              onChange={(e) => handleLinkChange("text", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>URL ссылки</Label>
+            <Input
+              value={collectionDetail.banner.link?.url}
+              onChange={(e) => handleLinkChange("url", e.target.value)}
+            />
+          </div>
         </div>
+      </div>
 
-        <div className="flex gap-4">
-          <Button type="submit">Сохранить</Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push('/admin/collections')}
-          >
-            Отмена
-          </Button>
-        </div>
-      </form>
+      <SectionEditor
+        sectionType="sections"
+        sections={collectionDetail.sections}
+        onChange={(newSections) => handleDetailChange("sections", newSections)}
+      />
+
+      <SectionEditor
+        sectionType="sections2"
+        sections={collectionDetail.sections2}
+        onChange={(newSections) => handleDetailChange("sections2", newSections)}
+      />
+
+      <SectionEditor
+        sectionType="sections3"
+        sections={collectionDetail.sections3}
+        onChange={(newSections) => handleDetailChange("sections3", newSections)}
+      />
+
+      <SectionEditor
+        sectionType="sections4"
+        sections={collectionDetail.sections4}
+        onChange={(newSections) => handleDetailChange("sections4", newSections)}
+      />
+
+      <div className="flex justify-end gap-4">
+        <Button variant="outline" onClick={() => router.push("/admin/collections")}>
+          Отмена
+        </Button>
+        <Button onClick={handleSave}>Сохранить изменения</Button>
+      </div>
     </div>
   )
 }
