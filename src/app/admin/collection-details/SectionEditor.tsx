@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { ImageBlockData } from "@/app/admin/contexts/SectionsContext"
+import type { ImageBlockData } from "@/app/types/collections"
 
 interface SectionEditorProps {
   sectionType: 'sections' | 'sections2' | 'sections3' | 'sections4'
@@ -161,4 +161,4 @@ export default function SectionEditor({ sectionType, sections, onChange }: Secti
       ))}
     </div>
   )
-} 
+}

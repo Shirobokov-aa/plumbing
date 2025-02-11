@@ -12,7 +12,7 @@ export function Sidebar() {
   const { collectionDetails = [] } = useSections()
 
   // Фильтруем только заполненные коллекции
-  const activeCollections = (collectionDetails || []).filter(collection => 
+  const activeCollections = (collectionDetails || []).filter(collection =>
     collection?.name && // Проверяем наличие имени
     collection?.banner?.title && // Проверяем наличие заголовка баннера
     collection?.banner?.description && // Проверяем наличие описания баннера
@@ -36,7 +36,7 @@ export function Sidebar() {
         { title: "Все коллекции", href: "/admin/collections" },
         { title: "Добавить коллекцию", href: "/admin/collections/add" },
         ...activeCollections.map((collection) => ({
-          title: collection.name.toUpperCase(),
+          title: collection.name,
           href: `/admin/collections/edit/${collection.id}`,
         })),
       ],
@@ -81,8 +81,8 @@ export function Sidebar() {
                 <AccordionContent>
                   {section.items.map((item, itemIndex) => (
                     <Link href={item.href} key={itemIndex}>
-                      <Button 
-                        variant={pathname === item.href ? "secondary" : "ghost"} 
+                      <Button
+                        variant={pathname === item.href ? "secondary" : "ghost"}
                         className="w-full justify-start text-left"
                       >
                         {item.title}

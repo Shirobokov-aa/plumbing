@@ -6,13 +6,21 @@ import { eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import type { CollectionItem } from "@/app/types/collections"
 
-// Получение всех коллекций
-export async function getCollections(): Promise<CollectionItem[]> {
+// Функции для работы с превью коллекций
+export async function getCollections() {
   try {
-    const result = await db.select().from(collectionsTable).limit(1)
-    return result[0]?.data || []
+    const collections = await db
+      .select({
+        id: collectionsTable.id,
+        data: collectionsTable.data
+      })
+      .from(collectionsTable)
+      .limit(1)
+
+    // Возвращаем массив из data или пустой массив
+    return collections[0]?.data?.collections || []
   } catch (error) {
-    console.error("Error fetching collections:", error)
+    console.error("Error in getCollections:", error)
     return []
   }
 }
@@ -20,8 +28,13 @@ export async function getCollections(): Promise<CollectionItem[]> {
 // Получение одной коллекции по ID
 export async function getCollectionById(id: number) {
   try {
-    const collections = await getCollections()
-    return collections.find((collection: CollectionItem) => collection.id === id)
+    const result = await db
+      .select()
+      .from(collectionsTable)
+      .where(eq(collectionsTable.id, id))
+      .limit(1)
+
+    return result[0]
   } catch (error) {
     console.error("Error fetching collection:", error)
     return null
@@ -29,30 +42,38 @@ export async function getCollectionById(id: number) {
 }
 
 // Добавление новой коллекции
-export async function addCollection(newCollection: Omit<CollectionItem, "id">) {
+export async function createCollection(data: CollectionItem) {
   try {
-    const collections = await getCollections()
-    const id = Date.now()
-    const collectionToAdd = { ...newCollection, id }
+    const currentCollections = await getCollections()
+    const updatedCollections = [...(currentCollections || []), data]
 
-    const updatedCollections = [...collections, collectionToAdd]
-    await db
-      .update(collectionsTable)
-      .set({ data: updatedCollections })
-      .where(eq(collectionsTable.id, 1))
+    const existing = await db.select().from(collectionsTable).limit(1)
 
-    return collectionToAdd
+    if (existing.length > 0) {
+      await db
+        .update(collectionsTable)
+        .set({ data: updatedCollections })
+        .where(eq(collectionsTable.id, existing[0].id))
+    } else {
+      await db.insert(collectionsTable).values({
+        data: [data]
+      })
+    }
+
+    revalidatePath('/admin/collections')
+    revalidatePath('/collections')
+    return data
   } catch (error) {
-    console.error("Error adding collection:", error)
-    throw new Error("Failed to add collection")
+    console.error("Error creating collection:", error)
+    throw error
   }
 }
 
 // Обновление коллекции
 export async function updateCollection(id: number, data: Partial<CollectionItem>) {
   try {
-    const collections = await getCollections()
-    const updatedCollections = collections.map((collection: CollectionItem) =>
+    const currentCollections = await getCollections()
+    const updatedCollections = currentCollections.map(collection =>
       collection.id === id ? { ...collection, ...data } : collection
     )
 
@@ -61,20 +82,31 @@ export async function updateCollection(id: number, data: Partial<CollectionItem>
       .set({ data: updatedCollections })
       .where(eq(collectionsTable.id, 1))
 
-    return updatedCollections.find((c: CollectionItem) => c.id === id)
+    revalidatePath('/admin/collections')
+    revalidatePath('/collections')
+    return data
   } catch (error) {
     console.error("Error updating collection:", error)
-    throw new Error("Failed to update collection")
+    throw error
   }
 }
 
 export async function deleteCollection(id: number) {
   try {
-    await db.delete(collectionsTable).where(eq(collectionsTable.id, id))
+    const currentCollections = await getCollections()
+    const updatedCollections = currentCollections.filter(c => c.id !== id)
+
+    await db
+      .update(collectionsTable)
+      .set({ data: updatedCollections })
+      .where(eq(collectionsTable.id, 1))
+
+    revalidatePath('/admin/collections')
+    revalidatePath('/collections')
     return true
   } catch (error) {
     console.error("Error deleting collection:", error)
-    throw new Error("Failed to delete collection")
+    throw error
   }
 }
 
@@ -90,6 +122,6 @@ export async function updateCollections(data: CollectionItem[]) {
     return result[0].data
   } catch (error) {
     console.error("Error updating collections:", error)
-    throw new Error("Failed to update collections")
+    throw error
   }
 }
