@@ -1,6 +1,5 @@
 import { pgTable, text, jsonb, serial } from 'drizzle-orm/pg-core';
-import type { SectionsData } from '@/app/types/sections'
-import type { CollectionItem, CollectionDetail } from '@/app/types/collections'
+import type { SectionsData, CollectionItem, CollectionDetail } from '@/app/types/collections'
 import type { BathroomPage, KitchenPage, AboutPage } from "@/app/types/pages"
 
 export const collectionsTable = pgTable("collections", {

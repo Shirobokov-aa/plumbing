@@ -4,11 +4,15 @@ import Footer from "@/components/Footer"
 import CollectionContent from "./CollectionContent"
 import { notFound } from "next/navigation"
 
-export default async function CollectionDetailPage({
-  params
-}: {
+interface PageProps {
   params: { slug: string }
-}) {
+}
+
+export default async function CollectionDetailPage({ params }: PageProps) {
+  if (!params?.slug) {
+    notFound()
+  }
+
   const collection = await getCollectionDetailBySlug(params.slug)
 
   if (!collection) {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { updateCollectionDetail } from "@/app/actions/collections/collections-db"
+import { updateCollectionDetail } from "@/app/actions/collection-details/db"
 import type { CollectionDetailItem } from "@/app/types/collections"
 import CollectionDetailBanner from "@/components/collection-detail/CollectionDetailBanner"
 import CollectionDetailSection from "@/components/collection-detail/CollectionDetailSection"

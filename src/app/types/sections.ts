@@ -26,9 +26,13 @@ export interface Section {
   images_block?: ImageBlockItem[];
 }
 
-export interface SectionsData {
-  [key: string]: Section;
-}
+export type SectionsData = Record<string, {
+  title?: string;
+  description?: string;
+  link?: { name: string; url: string };
+  images_block?: { src: string; alt: string; desc: string }[];
+  images?: string[];
+}>
 
 export interface SectionItem {
   title: string;

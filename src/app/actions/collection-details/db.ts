@@ -33,12 +33,12 @@ export async function updateCollectionDetails(data: CollectionDetail[]) {
   }
 }
 
-export async function getCollectionDetailBySlug(slug: string): Promise<CollectionDetailItem | null> {
+export async function getCollectionDetailBySlug(slug: string): Promise<CollectionDetail | null> {
   try {
-    const result = await db.select().from(collectionDetailsTable)
-      .where(eq(collectionDetailsTable.slug, slug))
-      .limit(1)
-    return result[0] || null
+    const collections = await getCollectionDetails()
+    return collections.find(collection =>
+      collection.name.toLowerCase() === slug.toLowerCase()
+    ) || null
   } catch (error) {
     console.error("Error fetching collection detail:", error)
     return null

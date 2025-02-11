@@ -80,6 +80,7 @@ const initialCollectionDetails = [
   {
     id: 1,
     name: "sono",
+    slug: "sono",
     banner: {
       image: "/img/banner01.png",
       title: "Коллекция Sono",
@@ -141,6 +142,7 @@ const initialCollectionDetails = [
   {
     id: 2,
     name: "era",
+    slug: "era",
     banner: {
       image: "/img/banner02.png",
       title: "Коллекция Era",
@@ -384,7 +386,10 @@ async function seedCollections() {
       })
       console.log("✅ Коллекции успешно добавлены")
     } else {
-      await db.update(collectionsTable).set({ data: initialCollections }).where(eq(collectionsTable.id, existing[0].id))
+      await db
+        .update(collectionsTable)
+        .set({ data: initialCollections })
+        .where(eq(collectionsTable.id, existing[0].id))
       console.log("✅ Коллекции успешно обновлены")
     }
   } catch (error) {

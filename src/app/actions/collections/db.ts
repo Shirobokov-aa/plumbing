@@ -10,7 +10,28 @@ import type { CollectionItem } from "@/app/types/collections"
 export async function getCollections(): Promise<CollectionItem[]> {
   try {
     const result = await db.select().from(collectionsTable).limit(1)
-    return result[0]?.data || []
+
+    // Проверяем, что результат существует
+    if (!result[0]) {
+      console.log('Нет данных в БД')
+      return []
+    }
+
+    // Получаем data из результата
+    const data = result[0].data
+
+    // Если data - это массив, возвращаем его
+    if (Array.isArray(data)) {
+      return data
+    }
+
+    // Если data - это объект, оборачиваем его в массив
+    if (data && typeof data === 'object') {
+      return [data as CollectionItem]
+    }
+
+    console.log('Неверный формат данных:', data)
+    return []
   } catch (error) {
     console.error("Error fetching collections:", error)
     return []
@@ -29,19 +50,19 @@ export async function getCollectionById(id: number) {
 }
 
 // Добавление новой коллекции
-export async function addCollection(newCollection: Omit<CollectionItem, "id">) {
+export async function addCollection(collection: CollectionItem) {
   try {
     const collections = await getCollections()
-    const id = Date.now()
-    const collectionToAdd = { ...newCollection, id }
+    const updatedCollections = [...collections, collection]
 
-    const updatedCollections = [...collections, collectionToAdd]
     await db
       .update(collectionsTable)
       .set({ data: updatedCollections })
       .where(eq(collectionsTable.id, 1))
+      .returning()
 
-    return collectionToAdd
+    revalidatePath('/collections')
+    return true
   } catch (error) {
     console.error("Error adding collection:", error)
     throw new Error("Failed to add collection")
